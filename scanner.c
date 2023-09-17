@@ -199,6 +199,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
         case SYMBOL_NOTEQUAL:
             return SYMBOL_NOTEQUAL;
         default:
+            *position--;
             return status;
     }
 }
@@ -221,11 +222,8 @@ int32_t process_next(scanner_main* scanner, int32_t* position, enum scanner_stat
     }
     
     if(check_symbol(scanner, position)) {
-        LogDebug(__FUNCTION__, __LINE__, "got symbol");
-        printf("%c", *current_char);
         goto end;
     }
-
 
 end:
     return 1;
@@ -240,6 +238,7 @@ int32_t scanner_tokenizer(scanner_main* scanner) {
         switch(state) {
             case INCOMMENT:
                 check_comment(scanner, &position, &state);
+                break;
             default:
                 process_next(scanner, &position, &state);
         }
