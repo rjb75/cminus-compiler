@@ -26,6 +26,8 @@ enum scanner_state {
     INCOMMENT
 };
 
+typedef struct scanner_token_s scanner_token;
+
 /*
  * This struct holds the data required for each token
  */
@@ -35,9 +37,8 @@ struct scanner_token_s {
     int32_t token_len;
     int32_t token_start;
     int32_t token_end;
+    scanner_token* next_token;
 };
-
-typedef struct scanner_token_s scanner_token;
 
 /*
  * This struct holds the data required for an instance of the scanner
@@ -47,6 +48,7 @@ struct scanner_main_s {
     char *data;
     int32_t data_len;
     scanner_token *tokens;
+    int32_t token_len;
 };
 
 /*

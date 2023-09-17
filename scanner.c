@@ -1,4 +1,3 @@
-#include <_ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,6 +60,8 @@ int32_t scanner_init(scanner_main* scanner) {
     int32_t status = -1;
 
     scanner->data = NULL;
+    scanner->tokens = NULL;
+    scanner->token_len = 0;
 
     status = 1;
 
@@ -73,6 +74,16 @@ int32_t scanner_cleanup(scanner_main* scanner) {
     if(scanner->data != NULL) {
         LogDebug(__FUNCTION__, __LINE__, "Freeing scanner data");
         free(scanner->data);
+    }
+    
+    if(scanner->tokens != NULL) {
+        LogDebug(__FUNCTION__, __LINE__, "Freeing token data");
+        scanner_token* token_ptr = scanner->tokens;
+        while(token_ptr->next_token != NULL) {
+            scanner_token* temp = token_ptr->next_token;
+            free(token_ptr);
+            token_ptr = temp;
+        }
     }
 
     status = 1;
@@ -116,15 +127,82 @@ int32_t check_comment(scanner_main* scanner, int32_t* position, enum scanner_sta
         return 0;
     }
 
-    *position++;
+    *position = *position + 1;
 
     return status;
 }
 
-int32_t check_id() {
-    int32_t status = -1;
+int32_t add_token(scanner_main* scanner, scanner_token* token) {
+    scanner_token* token_ptr = scanner->tokens;
+
+    if(token_ptr == NULL) {
+        LogDebug(__FUNCTION__, __LINE__, "Adding token to start");
+        scanner->tokens = token;
+        scanner->token_len++;
+        token_ptr = scanner->tokens;
+        printf("first token %d:%d %p %p\n", token_ptr->token_start, token_ptr->token_end, token_ptr->next_token, token);
+        return 0;
+    }
+
+    printf("first token %d:%d %p %p\n", token_ptr->token_start, token_ptr->token_end, token_ptr->next_token, token_ptr);
+
     
-    // check if keyword  
+    while(token_ptr->next_token != NULL) {
+        LogDebug(__FUNCTION__, __LINE__, "Add token after");
+        printf("next token is %p\n", token_ptr->next_token);
+        token_ptr = token_ptr->next_token;
+    }
+    
+    LogDebug(__FUNCTION__, __LINE__, "Added token");
+    
+    printf("adding to %p at %p %p\n", token_ptr, token_ptr->next_token, token);
+    token_ptr->next_token = token;
+    scanner->tokens++;
+    return 0;
+}
+
+int32_t check_id(scanner_main* scanner, int32_t* position) {
+    int32_t status = -1, start_pos = *position, length = 1, end_pos = *position;
+    char* current_char = &scanner->data[*position];
+    start_pos = *position;
+    printf("got id (%d): %c", *position, *current_char);
+    *position = *position + 1;
+
+    while(*position < scanner->data_len) {
+        current_char = &scanner->data[*position];
+        if(!isalpha(*current_char)) {
+            // id end
+            *position = *position - 1;;
+            end_pos = *position;
+            break;
+        }
+        printf("%c", *current_char);
+        *position = *position + 1;;
+        length++;
+    }
+    printf("\n");
+    return 1;
+}
+
+int32_t check_number(scanner_main* scanner, int32_t* position) {
+    int32_t status = -1, start_pos = *position, length = 1, end_pos;
+    char* current_char = &scanner->data[*position];
+    start_pos = *position;
+    printf("got number (%d): %c", *position, *current_char);
+    *position = *position + 1;
+
+    while(*position < scanner->data_len) {
+        current_char = &scanner->data[*position];
+        if(!isdigit(*current_char)) {
+            *position = *position - 1;
+            end_pos = *position;
+            break;
+        }
+        printf("%c", *current_char);
+        *position = *position + 1;
+        length++;
+    }
+    printf("\n");
 
     return status;
 }
@@ -187,7 +265,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
         return status;
     }
 
-    *position++;
+    *position = *position + 1;;
 
     switch(status) {
         case SYMBOL_LESSTHAN:
@@ -199,7 +277,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
         case SYMBOL_NOTEQUAL:
             return SYMBOL_NOTEQUAL;
         default:
-            *position--;
+            *position = *position - 1;
             return status;
     }
 }
@@ -214,10 +292,12 @@ int32_t process_next(scanner_main* scanner, int32_t* position, enum scanner_stat
     }
 
     if(isalpha(*current_char)) {
+        check_id(scanner, position);
         goto end;   
     }
 
     if(isnumber(*current_char)) {
+        check_number(scanner, position);
         goto end;
     }
     
