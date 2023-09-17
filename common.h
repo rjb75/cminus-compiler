@@ -1,0 +1,42 @@
+#ifndef COMMON_H
+#define COMMON_H
+
+/*
+ * This enum defines all of the keywords in c-minus
+ */
+enum cminus_keyword {
+    KEYWORD_ELSE,
+    KEYWORD_IF,
+    KEYWORD_INT,
+    KEYWORD_RETURN,
+    KEYWORD_VOID,
+    KEYWORD_WHILE
+};
+
+/*
+ * This enum defines all of the symbols in c-minus
+ */
+enum cminus_symbol {
+    SYMBOL_PLUS,
+    SYMBOL_MINUS,
+    SYMBOL_MULTIPLY,
+    SYMBOL_DIVIDE,
+    SYMBOL_LESSTHAN,
+    SYMBOL_LESSTHANEQUAL,
+    SYMBOL_GREATERTHAN,
+    SYMBOL_GREATERTHANEQUAL,
+    SYMBOL_EQUALEQUAL,
+    SYMBOL_NOTEQUAL,
+    SYMBOL_EQUAL,
+    SYMBOL_SEMICOLON,
+    SYMBOL_COMMA,
+    SYMBOL_PARENTHESISOPEN,
+    SYMBOL_PARENTHESISCLOSE,
+    SYMBOL_BRACKETOPEN,
+    SYMBOL_BRACKETCLOSE,
+    SYMBOL_BRACESOPEN,
+    SYMBOL_BRACESCLOSE,
+};
+
+#endif
+

@@ -51,7 +51,6 @@ int32_t write_file(char *filename, int32_t length, char *data) {
    int32_t status = -1;
    LogDebug(__FUNCTION__, __LINE__, "Writing file");
 
-end:
     return status;
 }
 
