@@ -80,7 +80,7 @@ int32_t scanner_cleanup(scanner_main* scanner) {
         LogDebug(__FUNCTION__, __LINE__, "Freeing token data");
         scanner_token** token_ptr = &scanner->tokens;
         while(*token_ptr != NULL) {
-            printf("got token> %d %d\n", (*token_ptr)->token_start, (*token_ptr)->token_end);
+            printf("got token> %d %d %d\n", (*token_ptr)->token_type,(*token_ptr)->token_start, (*token_ptr)->token_end);
             scanner_token* temp = (*token_ptr)->next_token;
             free(*token_ptr);
             *token_ptr = temp;
@@ -139,22 +139,22 @@ int32_t add_token(scanner_main* scanner, scanner_token* token) {
     
     if(*token_ptr == NULL) {
         *token_ptr = token;
-        printf("added %p %p\n", scanner->tokens, token);
+        //printf("added %p %p\n", scanner->tokens, token);
         scanner->token_len++;
         return 0;
     }
     
     while((*token_ptr)->next_token != NULL) {
-        LogDebug(__FUNCTION__, __LINE__, "Another token");
-        printf("token is %p\n", (*token_ptr)->next_token);
+        //LogDebug(__FUNCTION__, __LINE__, "Another token");
+        //printf("token is %p\n", (*token_ptr)->next_token);
         token_ptr = &(*token_ptr)->next_token;
     }
     
-    LogDebug(__FUNCTION__, __LINE__, "Added token");
-    printf("token was %p\n", token);
+    //LogDebug(__FUNCTION__, __LINE__, "Added token");
+    //printf("token was %p\n", token);
    
     scanner_token* to_add = *token_ptr;
-    printf("to add is %p %p\n", to_add, to_add->next_token);
+    //printf("to add is %p %p\n", to_add, to_add->next_token);
     to_add->next_token = token;
     //scanner->tokens++;
 
@@ -182,6 +182,7 @@ int32_t check_id(scanner_main* scanner, int32_t* position) {
     }
     
     scanner_token* token = malloc(sizeof(scanner_token));
+    token->token_type = SCANNER_ID;
     token->next_token = NULL;
     token->token_start = start_pos;
     token->token_end = end_pos;
@@ -198,7 +199,7 @@ int32_t check_number(scanner_main* scanner, int32_t* position) {
     int32_t status = -1, start_pos = *position, length = 1, end_pos;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
-    printf("got number (%d): %c", *position, *current_char);
+    //printf("got number (%d): %c", *position, *current_char);
     *position = *position + 1;
 
     while(*position < scanner->data_len) {
@@ -208,105 +209,156 @@ int32_t check_number(scanner_main* scanner, int32_t* position) {
             end_pos = *position;
             break;
         }
-        printf("%c", *current_char);
+        //printf("%c", *current_char);
         *position = *position + 1;
         length++;
     }
-    printf("\n");
+    //printf("\n");
+    
+    scanner_token* token = malloc(sizeof(scanner_token));
+    token->token_type = SCANNER_NUM;
+    token->next_token = NULL;
+    token->token_start = start_pos;
+    token->token_end = end_pos;
+    token->token_len = length;
+    token->token_ptr = &scanner->data[start_pos];
+    
+    add_token(scanner, token);
+
+    status = 1;
 
     return status;
 }
 
 int32_t check_symbol(scanner_main* scanner, int32_t* position) {
-    int32_t status = -1;
+    int32_t status = -1, check_next = 0, length = 0, start_pos = *position;
     char* current_char = &scanner->data[*position];
+    scanner_token* token = NULL;
 
     switch(*current_char) {
         case '+':
-            return SYMBOL_PLUS;
+            status = SYMBOL_PLUS;
+            break;
         case '-':
-            return SYMBOL_MINUS;
+            status = SYMBOL_MINUS;
+            break;
         case '*':
-            return SYMBOL_MULTIPLY;
+            status = SYMBOL_MULTIPLY;
+            break;
         case '/':
-            return SYMBOL_DIVIDE;
+            status = SYMBOL_DIVIDE;
+            break;
         case ';':
-            return SYMBOL_SEMICOLON;
+            status = SYMBOL_SEMICOLON;
+            break;
         case ',':
-            return SYMBOL_COMMA;
+            status = SYMBOL_COMMA;
+            break;
         case '(':
-            return SYMBOL_PARENTHESISOPEN;
+            status = SYMBOL_PARENTHESISOPEN;
+            break;
         case ')':
-            return SYMBOL_PARENTHESISCLOSE;
+            status = SYMBOL_PARENTHESISCLOSE;
+            break;
         case '[':
-            return SYMBOL_BRACKETOPEN;
+            status = SYMBOL_BRACKETOPEN;
+            break;
         case ']':
-            return SYMBOL_BRACKETCLOSE;
+            status = SYMBOL_BRACKETCLOSE;
+            break;
         case '{':
-            return SYMBOL_BRACESOPEN;
+            status = SYMBOL_BRACESOPEN;
+            break;
         case '}':
-            return SYMBOL_BRACESCLOSE;
+            status = SYMBOL_BRACESCLOSE;
+            break;
         case '<':
             status = SYMBOL_LESSTHAN;
+            check_next = 1;
             break;
         case '>':
             status = SYMBOL_GREATERTHAN;
+            check_next = 1;
             break;
         case '=':
             status = SYMBOL_EQUAL;
+            check_next = 1;
             break;
         case '!':
             status = SYMBOL_NOTEQUAL;
+            check_next = 1;
             break;
         default:
             return -1;
     }
     
+    length++;
+
+    if(check_next != 1) {
+        goto end; 
+    }
+
     if(*position >= scanner->data_len) {
         if(status == SYMBOL_NOTEQUAL) {
             status = -1;
         }
-        return status;
+        goto end;
     }
 
     current_char = &scanner->data[*position + 1];
     
     if(*current_char != '=') {
-        return status;
+        goto end;
     }
 
     *position = *position + 1;;
 
     switch(status) {
         case SYMBOL_LESSTHAN:
-            return SYMBOL_LESSTHANEQUAL;
+            status = SYMBOL_LESSTHANEQUAL;
+            length++;
+            break;
         case SYMBOL_GREATERTHAN:
-            return SYMBOL_GREATERTHANEQUAL;
+            status = SYMBOL_GREATERTHANEQUAL;
+            length++;
+            break;
         case SYMBOL_EQUAL:
-            return SYMBOL_EQUALEQUAL;
+            status = SYMBOL_EQUALEQUAL;
+            length++;
+            break;
         case SYMBOL_NOTEQUAL:
-            return SYMBOL_NOTEQUAL;
+            status = SYMBOL_NOTEQUAL;
+            length++;
+            break;
         default:
             *position = *position - 1;
-            return status;
+            goto end;
     }
+
+end:
+    token = malloc(sizeof(scanner_token));
+    token->token_type = SCANNER_SYMBOL;
+    token->next_token = NULL;
+    token->token_len = length;
+    token->token_start = start_pos;
+    token->token_end = start_pos + length;
+    token->token_ptr = &scanner->data[start_pos];
+    add_token(scanner, token);
+
+    return status;
 }
 
 int32_t process_next(scanner_main* scanner, int32_t* position, enum scanner_state* state) {
     char* current_char = &scanner->data[*position];
     
-    if(*current_char == '/' || *current_char == '*') {
-        if(check_comment(scanner, position, state) == 1) {
-            goto end;
-        }
-    }
+
 
     if(isalpha(*current_char)) {
         check_id(scanner, position);
         goto end;   
     }
-
-    if(isnumber(*current_char)) {
+    
+    if(isdigit(*current_char)) {
         check_number(scanner, position);
         goto end;
     }
@@ -325,14 +377,7 @@ int32_t scanner_tokenizer(scanner_main* scanner) {
     
     while(position < scanner->data_len) {
         char* current_char = &scanner->data[position];
-        switch(state) {
-            case INCOMMENT:
-                check_comment(scanner, &position, &state);
-                break;
-            default:
-                process_next(scanner, &position, &state);
-        }
-        
+        process_next(scanner, &position, &state);
         position++;
     }
 
