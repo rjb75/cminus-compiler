@@ -78,11 +78,12 @@ int32_t scanner_cleanup(scanner_main* scanner) {
     
     if(scanner->tokens != NULL) {
         LogDebug(__FUNCTION__, __LINE__, "Freeing token data");
-        scanner_token* token_ptr = scanner->tokens;
-        while(token_ptr->next_token != NULL) {
-            scanner_token* temp = token_ptr->next_token;
-            free(token_ptr);
-            token_ptr = temp;
+        scanner_token** token_ptr = &scanner->tokens;
+        while(*token_ptr != NULL) {
+            printf("got token> %d %d\n", (*token_ptr)->token_start, (*token_ptr)->token_end);
+            scanner_token* temp = (*token_ptr)->next_token;
+            free(*token_ptr);
+            *token_ptr = temp;
         }
     }
 
@@ -133,31 +134,30 @@ int32_t check_comment(scanner_main* scanner, int32_t* position, enum scanner_sta
 }
 
 int32_t add_token(scanner_main* scanner, scanner_token* token) {
-    scanner_token* token_ptr = scanner->tokens;
 
-    if(token_ptr == NULL) {
-        LogDebug(__FUNCTION__, __LINE__, "Adding token to start");
-        scanner->tokens = token;
+    scanner_token** token_ptr = &scanner->tokens;
+    
+    if(*token_ptr == NULL) {
+        *token_ptr = token;
+        printf("added %p %p\n", scanner->tokens, token);
         scanner->token_len++;
-        token_ptr = scanner->tokens;
-        printf("first token %d:%d %p %p\n", token_ptr->token_start, token_ptr->token_end, token_ptr->next_token, token);
         return 0;
     }
-
-    printf("first token %d:%d %p %p\n", token_ptr->token_start, token_ptr->token_end, token_ptr->next_token, token_ptr);
-
     
-    while(token_ptr->next_token != NULL) {
-        LogDebug(__FUNCTION__, __LINE__, "Add token after");
-        printf("next token is %p\n", token_ptr->next_token);
-        token_ptr = token_ptr->next_token;
+    while((*token_ptr)->next_token != NULL) {
+        LogDebug(__FUNCTION__, __LINE__, "Another token");
+        printf("token is %p\n", (*token_ptr)->next_token);
+        token_ptr = &(*token_ptr)->next_token;
     }
     
     LogDebug(__FUNCTION__, __LINE__, "Added token");
-    
-    printf("adding to %p at %p %p\n", token_ptr, token_ptr->next_token, token);
-    token_ptr->next_token = token;
-    scanner->tokens++;
+    printf("token was %p\n", token);
+   
+    scanner_token* to_add = *token_ptr;
+    printf("to add is %p %p\n", to_add, to_add->next_token);
+    to_add->next_token = token;
+    //scanner->tokens++;
+
     return 0;
 }
 
@@ -180,6 +180,16 @@ int32_t check_id(scanner_main* scanner, int32_t* position) {
         *position = *position + 1;;
         length++;
     }
+    
+    scanner_token* token = malloc(sizeof(scanner_token));
+    token->next_token = NULL;
+    token->token_start = start_pos;
+    token->token_end = end_pos;
+    token->token_len = length;
+    token->token_ptr = &scanner->data[start_pos];
+
+    add_token(scanner, token);
+
     printf("\n");
     return 1;
 }
