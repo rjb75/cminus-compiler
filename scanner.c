@@ -173,18 +173,87 @@ scan:
     return status;
 }
 
+int32_t check_keyword(scanner_main* scanner, int32_t* position) {
+    int32_t status = -1, start_pos = *position, length = 0;
+    enum cminus_keyword keyword = KEYWORD_NONE;
+
+    char* current_char = &scanner->data[*position];
+    start_pos = *position;
+    
+    switch(*current_char) {
+        case 'e':
+            if(strncmp("else", current_char, 4 * sizeof(char)) != 0) {
+                return 0;
+            }
+            keyword = KEYWORD_ELSE;
+            *position = *position + 4;
+            break;
+        case 'i':
+            if(strncmp(current_char, "if", 2) == 0) {
+                keyword = KEYWORD_IF;
+                *position = *position + 2;
+                break;
+            } else if(strncmp(current_char, "int", 3) == 0) {
+                keyword = KEYWORD_INT;
+                *position = *position + 3;
+                break;
+            }
+            return 0;
+        case 'r':
+            if(strncmp(current_char, "return", 6) != 0) {
+                return 0;
+            }
+            keyword = KEYWORD_RETURN;
+            *position = *position + 6;
+            break;
+        case 'v':
+            if(strncmp(current_char, "void", 4) != 0) {
+                return 0;
+            }
+            keyword = KEYWORD_VOID;
+            *position = *position + 4;
+            break;
+        case 'w':
+            if(strncmp(current_char, "while", 5) != 0) {
+                return 0;
+            }
+            keyword = KEYWORD_WHILE;
+            *position = *position + 5;
+            break;
+        default:
+            return 0;
+        }
+
+        current_char = &scanner->data[*position];
+
+        if(!isspace(*current_char)) {
+            *position = start_pos;
+            return 0;
+        }
+
+        scanner_token* token = malloc(sizeof(scanner_token));
+        token->token_type = SCANNER_KEYWORD;
+        token->keyword = keyword;
+        token->next_token = NULL;
+        token->token_start = start_pos;
+        token->token_end = *position;
+        token->token_len = *position - start_pos;
+        token->token_ptr = &scanner->data[start_pos];
+        
+        add_token(scanner, token);
+
+        return 1;
+
+}
+
 int32_t check_id(scanner_main* scanner, int32_t* position) {
     int32_t status = -1, start_pos = *position, length = 1, end_pos = *position;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
-    printf("got id (%d): %c", *position, *current_char);
-    *position = *position + 1;
 
-    // check for keywords
-   
-    
-
-    // end check for keywords
+    if(check_keyword(scanner, position)) {
+        return 1;
+    }
 
     while(*position < scanner->data_len) {
         current_char = &scanner->data[*position];
@@ -194,7 +263,7 @@ int32_t check_id(scanner_main* scanner, int32_t* position) {
             end_pos = *position;
             break;
         }
-        printf("%c", *current_char);
+        //printf("%c", *current_char);
         *position = *position + 1;;
         length++;
     }
@@ -209,7 +278,7 @@ int32_t check_id(scanner_main* scanner, int32_t* position) {
 
     add_token(scanner, token);
 
-    printf("\n");
+    //printf("\n");
     return 1;
 }
 

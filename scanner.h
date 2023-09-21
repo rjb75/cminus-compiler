@@ -8,11 +8,12 @@
  * This enum is used to identify the type of the token
  */
 enum scanner_token_type {
-    SCANNER_KEYWORD,
-    SCANNER_SYMBOL,
-    SCANNER_ID,
-    SCANNER_NUM,
-    SCANNER_COMMENT
+    SCANNER_NONE,       // reserved for no token
+    SCANNER_KEYWORD,    // a keyword
+    SCANNER_SYMBOL,     // a symbol
+    SCANNER_ID,         // a id
+    SCANNER_NUM,        // a number
+    SCANNER_COMMENT     // a comment
 };
 
 /*
@@ -33,6 +34,7 @@ typedef struct scanner_token_s scanner_token;
  */
 struct scanner_token_s {
     enum scanner_token_type token_type;
+    enum cminus_keyword keyword;
     char* token_ptr;
     int32_t token_len;
     int32_t token_start;

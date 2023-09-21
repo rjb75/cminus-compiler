@@ -5,18 +5,20 @@
  * This enum defines all of the keywords in c-minus
  */
 enum cminus_keyword {
-    KEYWORD_ELSE,
-    KEYWORD_IF,
-    KEYWORD_INT,
-    KEYWORD_RETURN,
-    KEYWORD_VOID,
-    KEYWORD_WHILE
+    KEYWORD_NONE,       // reserved for no keyword
+    KEYWORD_ELSE,       // else
+    KEYWORD_IF,         // if
+    KEYWORD_INT,        // int
+    KEYWORD_RETURN,     // return
+    KEYWORD_VOID,       // void
+    KEYWORD_WHILE       // while
 };
 
 /*
  * This enum defines all of the symbols in c-minus
  */
 enum cminus_symbol {
+    SYMBOL_NONE,
     SYMBOL_PLUS,
     SYMBOL_MINUS,
     SYMBOL_MULTIPLY,
