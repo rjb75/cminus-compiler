@@ -92,47 +92,6 @@ int32_t scanner_cleanup(scanner_main* scanner) {
     return status;
 }
 
-/*
- * This function checks for the start of a comment
- * Return Values:
- *  0: not a comment 1: opening of a comment 2: closing of a comment
- */
-int32_t check_comment(scanner_main* scanner, int32_t* position, enum scanner_state* state) {
-    int32_t status = 0;
-    char* current_char = &scanner->data[*position];
-    
-    if(*position >= scanner->data_len) {
-        return status;
-    }
-
-    switch (*current_char) {
-        case '/':
-            status = 1;
-            break;
-        case '*':
-            status = 2;
-            break;
-        default:
-            return 0;
-    }
-
-    current_char = &scanner->data[*position + 1];
-    
-    if(*state == INCOMMENT && *current_char == '/' && status == 2) {
-        LogDebug(__FUNCTION__, __LINE__, "Comment done");
-        *state = NONE;
-    } else if(*current_char == '*' && status == 1) {
-        LogDebug(__FUNCTION__, __LINE__, "Comment open");
-        *state = INCOMMENT;
-    } else {
-        return 0;
-    }
-
-    *position = *position + 1;
-
-    return status;
-}
-
 int32_t add_token(scanner_main* scanner, scanner_token* token) {
 
     scanner_token** token_ptr = &scanner->tokens;
@@ -161,12 +120,71 @@ int32_t add_token(scanner_main* scanner, scanner_token* token) {
     return 0;
 }
 
+int32_t handle_comment(scanner_main* scanner, int32_t* position) {
+    int32_t status = 0, start = *position, end = *position, length = 0;
+    char* current_char = &scanner->data[*position];
+    scanner_token* token = NULL;
+    
+    if(*current_char != '/') {
+        return status;
+    }
+
+    if(*position + 1 >= scanner->data_len) {
+        return status;
+    }
+    
+    *position = *position + 1;
+    current_char = &scanner->data[*position];
+    
+    if(*current_char != '*') {
+        return status;
+    }
+
+    *position = *position + 1;
+    current_char = &scanner->data[*position];
+
+scan:
+    while(*current_char != '*' && *position <= scanner->data_len)
+    {
+        *position = *position + 1;
+        current_char = &scanner->data[*position];
+    }
+    
+    current_char = &scanner->data[*position + 1];
+    
+    if(*position >= scanner->data_len) {
+        return -1;
+    }
+    else if(*current_char != '/') {
+        goto scan;
+    }
+
+    end = *position;
+    length = end - start;
+    token = malloc(sizeof(scanner_token));
+    token->token_type = SCANNER_COMMENT;
+    token->token_start = start;
+    token->token_end = end;
+    token->token_len = length;
+    token->next_token = NULL;
+    token->token_ptr = &scanner->data[start];
+    add_token(scanner, token); 
+    
+    return status;
+}
+
 int32_t check_id(scanner_main* scanner, int32_t* position) {
     int32_t status = -1, start_pos = *position, length = 1, end_pos = *position;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
     printf("got id (%d): %c", *position, *current_char);
     *position = *position + 1;
+
+    // check for keywords
+   
+    
+
+    // end check for keywords
 
     while(*position < scanner->data_len) {
         current_char = &scanner->data[*position];
@@ -242,12 +260,6 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
         case '-':
             status = SYMBOL_MINUS;
             break;
-        case '*':
-            status = SYMBOL_MULTIPLY;
-            break;
-        case '/':
-            status = SYMBOL_DIVIDE;
-            break;
         case ';':
             status = SYMBOL_SEMICOLON;
             break;
@@ -271,6 +283,13 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
             break;
         case '}':
             status = SYMBOL_BRACESCLOSE;
+            break;
+        case '*':
+            status = SYMBOL_MULTIPLY;
+            break;
+        case '/':
+            status = SYMBOL_DIVIDE;
+            check_next = 1;
             break;
         case '<':
             status = SYMBOL_LESSTHAN;
@@ -307,11 +326,18 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
 
     current_char = &scanner->data[*position + 1];
     
-    if(*current_char != '=') {
-        goto end;
+    switch(*current_char) {
+        case '=':
+            *position = *position + 1;
+            break;
+        case '*':
+            if(status != SYMBOL_DIVIDE) {
+                goto end;
+            }
+            return handle_comment(scanner, position);
+        default:
+            goto end;
     }
-
-    *position = *position + 1;;
 
     switch(status) {
         case SYMBOL_LESSTHAN:
@@ -350,8 +376,12 @@ end:
 
 int32_t process_next(scanner_main* scanner, int32_t* position, enum scanner_state* state) {
     char* current_char = &scanner->data[*position];
-    
 
+    /*
+    if(*current_char == '\n' || *current_char == ' ') {
+        goto end;
+    }
+    */
 
     if(isalpha(*current_char)) {
         check_id(scanner, position);
