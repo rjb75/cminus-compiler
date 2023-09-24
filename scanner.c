@@ -8,6 +8,18 @@
 #include "logger.h"
 #include "file.h"
 
+const char* token_name(scanner_token token) {
+    switch (token.token_type) {
+        case SCANNER_ID:
+            return "ID";
+        case SCANNER_NUM:
+            return "NUM";
+        default:
+            return "";
+    }
+
+}
+
 int cli_parser(scanner_main* scanner, int argc, char *argv[]) {
     if(argc < 1) {
         return -1;
@@ -68,23 +80,119 @@ int32_t scanner_init(scanner_main* scanner) {
     return status;
 }
 
+const char* symbol_name(enum cminus_symbol symbol) {
+    switch(symbol) {
+        case SYMBOL_PLUS:
+            return "ADD";
+        case SYMBOL_MINUS:
+            return "SUBTRACT";
+        case SYMBOL_MULTIPLY:
+            return "MULTIPLY";
+        case SYMBOL_DIVIDE:
+            return "DIVIDE";
+        case SYMBOL_LESSTHAN:
+            return "LESS_THAN";
+        case SYMBOL_LESSTHANEQUAL:
+            return "LESS_EQUAL";
+        case SYMBOL_GREATERTHAN:
+            return "GREATER_THAN";
+        case SYMBOL_GREATERTHANEQUAL:
+            return "GREATER_EQUAL";
+        case SYMBOL_EQUALEQUAL:
+            return "EQUIVELANT";
+        case SYMBOL_NOTEQUAL:
+            return "NOT_EQUAL";
+        case SYMBOL_EQUAL:
+            return "EQUALS";
+        case SYMBOL_SEMICOLON:
+            return "SEM_COL";
+        case SYMBOL_COMMA:
+            return "COMMA";
+        case SYMBOL_PARENTHESISOPEN:
+            return "O_PAREN";
+        case SYMBOL_PARENTHESISCLOSE:
+            return "C_PAREN";
+        case SYMBOL_BRACKETOPEN:
+            return "O_BRACKET";
+        case SYMBOL_BRACKETCLOSE:
+            return "C_BRACKET";
+        case SYMBOL_BRACESOPEN:
+            return "O_BRACE";
+        case SYMBOL_BRACESCLOSE:
+            return "C_BRACE";
+        default:
+            return "";
+    }
+}
+
+const char* keyword_name(enum cminus_keyword keyword) {
+    switch(keyword) {
+        case KEYWORD_ELSE:
+            return "ELSE";
+        case KEYWORD_IF:
+            return "IF";
+        case KEYWORD_INT:
+            return "INT";
+        case KEYWORD_RETURN:
+            return "RETURN";
+        case KEYWORD_VOID:
+            return "VOID";
+        case KEYWORD_WHILE:
+            return "WHILE";
+        default:
+            return "";
+    }
+}
+
+char* format_token_string(scanner_token token) {
+    int32_t len = 0, max_len = 128;
+    char *output = malloc((max_len+1)*sizeof(char)), *cursor = output;
+    memset(output, 0, (max_len+1)*sizeof(char));
+    
+    len += sprintf(output, "%d: ", token.line_start);
+    cursor = &output[len];
+
+    if(token.token_type == SCANNER_NUM) {
+        len = sprintf(cursor, "%s ", token_name(token));
+    } else if(token.token_type == SCANNER_ID) {
+        char *tmp = malloc((token.token_len)* sizeof(char));
+        memcpy(tmp, token.token_ptr, token.token_len - 1);
+        tmp[token.token_len] = '\0';
+        len = sprintf(cursor, "%s \"%s\"", token_name(token), tmp);
+        free(tmp);
+    } else if(token.token_type == SCANNER_SYMBOL) {
+        len = sprintf(cursor, "%s ", symbol_name(token.symbol));
+    } else if(token.token_type == SCANNER_COMMENT) {
+        len = sprintf(cursor, "COMMENT");
+    } else if(token.token_type == SCANNER_KEYWORD) {
+        len = sprintf(cursor, "%s", keyword_name(token.keyword));
+    }
+
+    cursor = &output[len];
+    
+    return output;
+}
+
 int32_t scanner_cleanup(scanner_main* scanner) {
     int32_t status = -1;
 
-    if(scanner->data != NULL) {
-        LogDebug(__FUNCTION__, __LINE__, "Freeing scanner data");
-        free(scanner->data);
-    }
-    
     if(scanner->tokens != NULL) {
         LogDebug(__FUNCTION__, __LINE__, "Freeing token data");
         scanner_token** token_ptr = &scanner->tokens;
+        char *tok_str = NULL;
         while(*token_ptr != NULL) {
-            printf("got token> %d %d %d\n", (*token_ptr)->token_type,(*token_ptr)->token_start, (*token_ptr)->token_end);
+            tok_str = format_token_string(**token_ptr);
+            printf("%s\n", tok_str);
+            free(tok_str);
             scanner_token* temp = (*token_ptr)->next_token;
             free(*token_ptr);
             *token_ptr = temp;
         }
+    }
+    
+    if(scanner->data != NULL) {
+        LogDebug(__FUNCTION__, __LINE__, "Freeing scanner data");
+        free(scanner->data);
     }
 
     status = 1;
@@ -120,8 +228,9 @@ int32_t add_token(scanner_main* scanner, scanner_token* token) {
     return 0;
 }
 
-int32_t handle_comment(scanner_main* scanner, int32_t* position) {
-    int32_t status = 0, start = *position, end = *position, length = 0;
+int32_t handle_comment(scanner_main* scanner, int32_t* position, int32_t* line) {
+    int32_t status = 0, start = *position, end = *position, length = 0,
+            start_line = *line, end_line = *line;
     char* current_char = &scanner->data[*position];
     scanner_token* token = NULL;
     
@@ -146,6 +255,9 @@ int32_t handle_comment(scanner_main* scanner, int32_t* position) {
 scan:
     while(*current_char != '*' && *position <= scanner->data_len)
     {
+        if(*current_char == '\n') {
+            *line = *line + 1;
+        }
         *position = *position + 1;
         current_char = &scanner->data[*position];
     }
@@ -160,6 +272,7 @@ scan:
     }
 
     end = *position;
+    end_line = *line;
     length = end - start;
     token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_COMMENT;
@@ -168,12 +281,14 @@ scan:
     token->token_len = length;
     token->next_token = NULL;
     token->token_ptr = &scanner->data[start];
+    token->line_start = start_line;
+    token->line_end = end_line;
     add_token(scanner, token); 
     
     return status;
 }
 
-int32_t check_keyword(scanner_main* scanner, int32_t* position) {
+int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
     int32_t status = -1, start_pos = *position, length = 0;
     enum cminus_keyword keyword = KEYWORD_NONE;
 
@@ -207,6 +322,7 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position) {
             *position = *position + 6;
             break;
         case 'v':
+            printf("%s\n", current_char);
             if(strncmp(current_char, "void", 4) != 0) {
                 return 0;
             }
@@ -239,6 +355,8 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position) {
         token->token_end = *position;
         token->token_len = *position - start_pos;
         token->token_ptr = &scanner->data[start_pos];
+        token->line_start = *line;
+        token->line_end = *line;
         
         add_token(scanner, token);
 
@@ -246,12 +364,12 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position) {
 
 }
 
-int32_t check_id(scanner_main* scanner, int32_t* position) {
+int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
     int32_t status = -1, start_pos = *position, length = 1, end_pos = *position;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
 
-    if(check_keyword(scanner, position)) {
+    if(check_keyword(scanner, position, line)) {
         return 1;
     }
 
@@ -275,6 +393,8 @@ int32_t check_id(scanner_main* scanner, int32_t* position) {
     token->token_end = end_pos;
     token->token_len = length;
     token->token_ptr = &scanner->data[start_pos];
+    token->line_start = *line;
+    token->line_end = *line;
 
     add_token(scanner, token);
 
@@ -282,7 +402,7 @@ int32_t check_id(scanner_main* scanner, int32_t* position) {
     return 1;
 }
 
-int32_t check_number(scanner_main* scanner, int32_t* position) {
+int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
     int32_t status = -1, start_pos = *position, length = 1, end_pos;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
@@ -309,6 +429,8 @@ int32_t check_number(scanner_main* scanner, int32_t* position) {
     token->token_end = end_pos;
     token->token_len = length;
     token->token_ptr = &scanner->data[start_pos];
+    token->line_start = *line;
+    token->line_end = *line;
     
     add_token(scanner, token);
 
@@ -317,7 +439,7 @@ int32_t check_number(scanner_main* scanner, int32_t* position) {
     return status;
 }
 
-int32_t check_symbol(scanner_main* scanner, int32_t* position) {
+int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
     int32_t status = -1, check_next = 0, length = 0, start_pos = *position;
     char* current_char = &scanner->data[*position];
     scanner_token* token = NULL;
@@ -403,7 +525,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
             if(status != SYMBOL_DIVIDE) {
                 goto end;
             }
-            return handle_comment(scanner, position);
+            return handle_comment(scanner, position, line);
         default:
             goto end;
     }
@@ -433,36 +555,38 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position) {
 end:
     token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_SYMBOL;
+    token->symbol = status;
     token->next_token = NULL;
     token->token_len = length;
     token->token_start = start_pos;
     token->token_end = start_pos + length;
     token->token_ptr = &scanner->data[start_pos];
+    token->line_start= *line;
+    token->line_end= *line;
     add_token(scanner, token);
 
     return status;
 }
 
-int32_t process_next(scanner_main* scanner, int32_t* position, enum scanner_state* state) {
+int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, enum scanner_state* state) {
     char* current_char = &scanner->data[*position];
 
-    /*
-    if(*current_char == '\n' || *current_char == ' ') {
+    if(*current_char == '\n') {
+        *line = *line + 1;
         goto end;
     }
-    */
 
     if(isalpha(*current_char)) {
-        check_id(scanner, position);
+        check_id(scanner, position, line);
         goto end;   
     }
     
     if(isdigit(*current_char)) {
-        check_number(scanner, position);
+        check_number(scanner, position, line);
         goto end;
     }
     
-    if(check_symbol(scanner, position)) {
+    if(check_symbol(scanner, position, line)) {
         goto end;
     }
 
@@ -471,12 +595,13 @@ end:
 }
 
 int32_t scanner_tokenizer(scanner_main* scanner) {
-    int32_t status = -1, position = 0;
+    int32_t status = -1, position = 0, line = 1;
     enum scanner_state state = NONE;
+    char* current_char = NULL;
     
     while(position < scanner->data_len) {
-        char* current_char = &scanner->data[position];
-        process_next(scanner, &position, &state);
+        current_char = &scanner->data[position];
+        process_next(scanner, &position, &line, &state);
         position++;
     }
 

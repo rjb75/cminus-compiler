@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <ctype.h>
+#include "common.h"
 
 /*
  * This enum is used to identify the type of the token
@@ -35,10 +36,13 @@ typedef struct scanner_token_s scanner_token;
 struct scanner_token_s {
     enum scanner_token_type token_type;
     enum cminus_keyword keyword;
+    enum cminus_symbol symbol;
     char* token_ptr;
     int32_t token_len;
     int32_t token_start;
     int32_t token_end;
+    int32_t line_start;
+    int32_t line_end;
     scanner_token* next_token;
 };
 
