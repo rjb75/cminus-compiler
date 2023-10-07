@@ -206,24 +206,16 @@ int32_t add_token(scanner_main* scanner, scanner_token* token) {
     
     if(*token_ptr == NULL) {
         *token_ptr = token;
-        //printf("added %p %p\n", scanner->tokens, token);
         scanner->token_len++;
         return 0;
     }
     
     while((*token_ptr)->next_token != NULL) {
-        //LogDebug(__FUNCTION__, __LINE__, "Another token");
-        //printf("token is %p\n", (*token_ptr)->next_token);
         token_ptr = &(*token_ptr)->next_token;
     }
     
-    //LogDebug(__FUNCTION__, __LINE__, "Added token");
-    //printf("token was %p\n", token);
-   
     scanner_token* to_add = *token_ptr;
-    //printf("to add is %p %p\n", to_add, to_add->next_token);
     to_add->next_token = token;
-    //scanner->tokens++;
 
     return 0;
 }
@@ -270,6 +262,8 @@ scan:
     else if(*current_char != '/') {
         goto scan;
     }
+
+    *position = *position + 1;
 
     end = *position;
     end_line = *line;
@@ -322,7 +316,6 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
             *position = *position + 6;
             break;
         case 'v':
-            printf("%s\n", current_char);
             if(strncmp(current_char, "void", 4) != 0) {
                 return 0;
             }
@@ -341,8 +334,8 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
         }
 
         current_char = &scanner->data[*position];
-
-        if(!isspace(*current_char)) {
+        
+        if(isalpha(*current_char)) {
             *position = start_pos;
             return 0;
         }
