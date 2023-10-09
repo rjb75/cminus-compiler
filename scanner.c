@@ -285,7 +285,7 @@ scan:
 }
 
 int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
-    int32_t status = -1, start_pos = *position, length = 0;
+    int32_t start_pos = *position;
     enum cminus_keyword keyword = KEYWORD_NONE;
 
     char* current_char = &scanner->data[*position];
@@ -360,7 +360,7 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
 }
 
 int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
-    int32_t status = -1, start_pos = *position, length = 1, end_pos = *position;
+    int32_t start_pos = *position, length = 1, end_pos = *position;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
 
@@ -395,7 +395,7 @@ int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
 }
 
 int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
-    int32_t status = -1, start_pos = *position, length = 1, end_pos;
+    int32_t status = -1, start_pos = *position, length = 1, end_pos = *position;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
     *position = *position + 1;
@@ -585,10 +585,8 @@ int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, en
 int32_t scanner_tokenizer(scanner_main* scanner) {
     int32_t status = -1, position = 0, line = 1;
     enum scanner_state state = NONE;
-    char* current_char = NULL;
-    
+
     while(position < scanner->data_len) {
-        current_char = &scanner->data[position];
         process_next(scanner, &position, &line, &state);
         position++;
     }
