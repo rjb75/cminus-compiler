@@ -95,15 +95,15 @@ const char* symbol_name(enum cminus_symbol symbol) {
         case SYMBOL_LESSTHANEQUAL:
             return "LESS_EQUAL";
         case SYMBOL_GREATERTHAN:
-            return "GREATER_THAN";
+            return "GT";
         case SYMBOL_GREATERTHANEQUAL:
             return "GREATER_EQUAL";
         case SYMBOL_EQUALEQUAL:
-            return "EQUIVELANT";
+            return "EQ";
         case SYMBOL_NOTEQUAL:
             return "NOT_EQUAL";
         case SYMBOL_EQUAL:
-            return "EQUALS";
+            return "SET";
         case SYMBOL_SEMICOLON:
             return "SEM_COL";
         case SYMBOL_COMMA:
@@ -181,9 +181,11 @@ int32_t scanner_cleanup(scanner_main* scanner) {
         scanner_token** token_ptr = &scanner->tokens;
         char *tok_str = NULL;
         while(*token_ptr != NULL) {
-            tok_str = format_token_string(**token_ptr);
-            printf("%s\n", tok_str);
-            free(tok_str);
+            if((**token_ptr).token_type != SCANNER_COMMENT) {
+                tok_str = format_token_string(**token_ptr);
+                printf("%s\n", tok_str);
+                free(tok_str);
+            }
             scanner_token* temp = (*token_ptr)->next_token;
             free(*token_ptr);
             *token_ptr = temp;
@@ -352,7 +354,7 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
         token->line_end = *line;
         
         add_token(scanner, token);
-
+        *position = *position - 1;
         return 1;
 
 }
@@ -369,12 +371,10 @@ int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
     while(*position < scanner->data_len) {
         current_char = &scanner->data[*position];
         if(!isalpha(*current_char)) {
-            // id end
             *position = *position - 1;;
             end_pos = *position;
             break;
         }
-        //printf("%c", *current_char);
         *position = *position + 1;;
         length++;
     }
@@ -391,7 +391,6 @@ int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
 
     add_token(scanner, token);
 
-    //printf("\n");
     return 1;
 }
 
@@ -399,7 +398,6 @@ int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
     int32_t status = -1, start_pos = *position, length = 1, end_pos;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
-    //printf("got number (%d): %c", *position, *current_char);
     *position = *position + 1;
 
     while(*position < scanner->data_len) {
@@ -409,11 +407,9 @@ int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
             end_pos = *position;
             break;
         }
-        //printf("%c", *current_char);
         *position = *position + 1;
         length++;
     }
-    //printf("\n");
     
     scanner_token* token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_NUM;
@@ -566,25 +562,24 @@ int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, en
 
     if(*current_char == '\n') {
         *line = *line + 1;
-        goto end;
+        return 1;
     }
 
     if(isalpha(*current_char)) {
         check_id(scanner, position, line);
-        goto end;   
+        return 1;
     }
     
     if(isdigit(*current_char)) {
         check_number(scanner, position, line);
-        goto end;
+        return 1;
     }
     
     if(check_symbol(scanner, position, line)) {
-        goto end;
+        return 1;
     }
 
-end:
-    return 1;
+    return 0;
 }
 
 int32_t scanner_tokenizer(scanner_main* scanner) {
