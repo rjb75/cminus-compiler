@@ -247,13 +247,18 @@ int32_t handle_comment(scanner_main* scanner, int32_t* position, int32_t* line) 
     current_char = &scanner->data[*position];
 
 scan:
-    while(*current_char != '*' && *position <= scanner->data_len)
+    while(*current_char != '*' && *position < scanner->data_len)
     {
         if(*current_char == '\n') {
             *line = *line + 1;
         }
         *position = *position + 1;
         current_char = &scanner->data[*position];
+    }
+
+    if(*position == scanner->data_len) {
+        printf("unterminated comment at or near line %d\n", *line);
+        return -1;
     }
     
     current_char = &scanner->data[*position + 1];
@@ -429,7 +434,7 @@ int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
 }
 
 int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
-    int32_t status = -1, check_next = 0, length = 0, start_pos = *position;
+    int32_t status = 0, check_next = 0, length = 0, start_pos = *position;
     char* current_char = &scanner->data[*position];
     scanner_token* token = NULL;
 
@@ -466,6 +471,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
             break;
         case '*':
             status = SYMBOL_MULTIPLY;
+            check_next = 1;            
             break;
         case '/':
             status = SYMBOL_DIVIDE;
@@ -488,7 +494,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
             check_next = 1;
             break;
         default:
-            return -1;
+            return 0;
     }
     
     length++;
@@ -499,7 +505,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
 
     if(*position >= scanner->data_len) {
         if(status == SYMBOL_NOTEQUAL) {
-            status = -1;
+            status = 0;
         }
         goto end;
     }
@@ -515,6 +521,12 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
                 goto end;
             }
             return handle_comment(scanner, position, line);
+        case '/':
+            if(status == SYMBOL_MULTIPLY) {
+                printf("error: end of comment with no matching start "
+                        "at or near line %d\n", *line);
+                return -1;
+            }
         default:
             goto end;
     }
@@ -559,6 +571,7 @@ end:
 
 int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, enum scanner_state* state) {
     char* current_char = &scanner->data[*position];
+    int32_t status = 0;
 
     if(*current_char == '\n') {
         *line = *line + 1;
@@ -574,8 +587,12 @@ int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, en
         check_number(scanner, position, line);
         return 1;
     }
+
+    status = check_symbol(scanner, position, line);
     
-    if(check_symbol(scanner, position, line)) {
+    if(status < 0) {
+        return -1;
+    } else if(status > 0) {
         return 1;
     }
 
@@ -583,11 +600,11 @@ int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, en
 }
 
 int32_t scanner_tokenizer(scanner_main* scanner) {
-    int32_t status = -1, position = 0, line = 1;
+    int32_t status = 0, position = 0, line = 1;
     enum scanner_state state = NONE;
 
-    while(position < scanner->data_len) {
-        process_next(scanner, &position, &line, &state);
+    while(position < scanner->data_len && status >= 0) {
+        status = process_next(scanner, &position, &line, &state);
         position++;
     }
 
@@ -602,6 +619,7 @@ int main(int argc, char *argv[]) {
     }
 
     if(!scanner_tokenizer(&scanner)) {
+        LogError(__FUNCTION__, __LINE__, "Error Scanning");
         goto end;
     }
     
