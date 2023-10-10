@@ -1,5 +1,6 @@
 #include "file.h"
 #include "logger.h"
+#include <stdio.h>
 
 int32_t read_file(char *filename, char *dest, int32_t dest_len) {
     int32_t status = -1, size = 0;
@@ -47,10 +48,34 @@ end:
     return status;
 }
 
-int32_t write_file(char *filename, int32_t length, char *data) {
-   int32_t status = -1;
-   LogDebug(__FUNCTION__, __LINE__, "Writing file");
+int32_t open_file(char* filename, FILE** file_pointer) {
+    FILE *fp = NULL;
 
-    return status;
+    fp = fopen(filename, "w+");
+    
+    if(fp == NULL) {
+        LogError(__FUNCTION__, __LINE__, "Error opening output file");
+        return -1;
+    }
+    
+    *file_pointer = fp;
+    return 1;
+}
+
+int32_t write_file(FILE * file_pointer, char* data) {
+   int32_t status = -1;
+    
+   fwrite(data, sizeof(char), strlen(data) + 1, file_pointer);
+
+   return status;
+}
+
+int32_t close_file(FILE** file_pointer) {
+    if(fclose(*file_pointer) != 0) {
+        LogError(__FUNCTION__, __LINE__, "Error closing file");
+        return -1;
+    }
+    *file_pointer = NULL;
+    return 1;
 }
 

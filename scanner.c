@@ -202,6 +202,37 @@ int32_t scanner_cleanup(scanner_main* scanner) {
     return status;
 }
 
+int32_t scanner_write_file(scanner_main* scanner) {
+    int32_t status = -1;
+    FILE* file = NULL;
+
+    if(!open_file("scanner.out", &file)) {
+        return -1;
+    }
+
+    if(scanner->tokens != NULL) {
+        scanner_token** token_ptr = &scanner->tokens;
+        char *tok_str = NULL;
+        while(*token_ptr != NULL) {
+            if((**token_ptr).token_type != SCANNER_COMMENT) {
+                tok_str = format_token_string(**token_ptr);
+                write_file(file, tok_str);
+                write_file(file, "\n");
+                free(tok_str);
+            }
+            *token_ptr = (*token_ptr)->next_token;
+        }
+    }
+
+    if(!close_file(&file)) {
+        return -1;
+    }
+    
+    status = 1;
+
+    return status;
+}
+
 int32_t add_token(scanner_main* scanner, scanner_token* token) {
 
     scanner_token** token_ptr = &scanner->tokens;
@@ -646,6 +677,8 @@ int main(int argc, char *argv[]) {
         LogError(__FUNCTION__, __LINE__, "Error Scanning");
         goto end;
     }
+
+    scanner_write_file(&scanner);
     
 end:
     scanner_cleanup(&scanner);
