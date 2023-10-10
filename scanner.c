@@ -222,6 +222,29 @@ int32_t add_token(scanner_main* scanner, scanner_token* token) {
     return 0;
 }
 
+
+int32_t handle_common(scanner_main* scanner, int32_t* position, int32_t* line) {
+    char* current_char = &scanner->data[*position];
+
+    switch(*current_char) {
+        case '\n':
+            *line = *line + 1;
+        case ' ':
+        case '\t':
+            return 1;
+    }
+    return 0;
+}
+
+int32_t handle_unknown(scanner_main* scanner, int32_t* position, int32_t* line) {
+    char* current_char = &scanner->data[*position];
+
+    printf("warning skipping unknown character \'%c\' at or near line %d\n",
+            *current_char, *line);
+
+    return 1;
+}
+
 int32_t handle_comment(scanner_main* scanner, int32_t* position, int32_t* line) {
     int32_t status = 0, start = *position, end = *position, length = 0,
             start_line = *line, end_line = *line;
@@ -573,8 +596,7 @@ int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, en
     char* current_char = &scanner->data[*position];
     int32_t status = 0;
 
-    if(*current_char == '\n') {
-        *line = *line + 1;
+    if(handle_common(scanner, position, line)) {
         return 1;
     }
 
@@ -595,6 +617,8 @@ int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, en
     } else if(status > 0) {
         return 1;
     }
+
+    handle_unknown(scanner, position, line);
 
     return 0;
 }
@@ -627,4 +651,3 @@ end:
     scanner_cleanup(&scanner);
     return 0;
 }
-
