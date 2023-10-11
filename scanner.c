@@ -27,19 +27,30 @@ int cli_parser(scanner_main* scanner, int argc, char *argv[]) {
         LogError(__FUNCTION__, __LINE__, "Error parsing arguments");
         return 1;
     }
-    
+
     for (int i = 1; i < argc; i++) {
-        if(i%2) {
-            if(strcmp(argv[i], "-f") == 0) {
-                if(i < argc) {
-                    char* filename = argv[i+1];
-                    if(strlen(filename) > 127) {
-                        LogError(__FUNCTION__, __LINE__, "File name too long");
-                        goto end;
-                    }
-                    strcpy(scanner->file_name, filename);
+        if(strcmp(argv[i], "-o") == 0) {
+            if(i < argc) {
+                char* filename = argv[i+1];
+                if(strlen(filename) > 127) {
+                    LogError(__FUNCTION__, __LINE__, "Output file name too long");
+                    goto end;
                 }
+                strcpy(scanner->out_file_name, filename);
+                i++;
             }
+        } else if(strcmp(argv[i], "-d") == 0) {
+            scanner->debug_mode = 1;
+        }
+
+        // handle filename
+        if(i == argc - 1) {
+            char* filename = argv[i];
+            if(strlen(filename) > 127) {
+                LogError(__FUNCTION__, __LINE__, "File name too long");
+                goto end;
+            }
+            strcpy(scanner->file_name, filename);
         }
     }
     
@@ -69,15 +80,13 @@ end:
 }
 
 int32_t scanner_init(scanner_main* scanner) {
-    int32_t status = -1;
-
     scanner->data = NULL;
     scanner->tokens = NULL;
     scanner->token_len = 0;
+    scanner->debug_mode = 0;
+    strcpy(scanner->out_file_name, "scanner.out");
 
-    status = 1;
-
-    return status;
+    return 1;
 }
 
 const char* symbol_name(enum cminus_symbol symbol) {
@@ -187,7 +196,9 @@ int32_t scanner_cleanup(scanner_main* scanner) {
         while(*token_ptr != NULL) {
             if((**token_ptr).token_type != SCANNER_COMMENT) {
                 tok_str = format_token_string(**token_ptr);
-                printf("%s\n", tok_str);
+                if(scanner->debug_mode > 0) {
+                    printf("%s\n", tok_str);
+                }
                 free(tok_str);
             }
             scanner_token* temp = (*token_ptr)->next_token;
@@ -210,21 +221,21 @@ int32_t scanner_write_file(scanner_main* scanner) {
     int32_t status = -1;
     FILE* file = NULL;
 
-    if(!open_file("scanner.out", &file)) {
+    if(!open_file(scanner->out_file_name, &file)) {
         return -1;
     }
 
     if(scanner->tokens != NULL) {
-        scanner_token** token_ptr = &scanner->tokens;
+        scanner_token* token_ptr = scanner->tokens;
         char *tok_str = NULL;
-        while(*token_ptr != NULL) {
-            if((**token_ptr).token_type != SCANNER_COMMENT) {
-                tok_str = format_token_string(**token_ptr);
+        while(token_ptr != NULL) {
+            if(token_ptr->token_type != SCANNER_COMMENT) {
+                tok_str = format_token_string(*token_ptr);
                 write_file(file, tok_str);
                 write_file(file, "\n");
                 free(tok_str);
             }
-            *token_ptr = (*token_ptr)->next_token;
+            token_ptr = token_ptr->next_token;
         }
     }
 
@@ -329,6 +340,7 @@ scan:
     }
 
     *position = *position + 1;
+    status = 1;
 
     end = *position;
     end_line = *line;

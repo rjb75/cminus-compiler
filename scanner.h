@@ -51,10 +51,12 @@ struct scanner_token_s {
  */
 struct scanner_main_s {
     char file_name[128];
+    char out_file_name[128];
     char *data;
     int32_t data_len;
     scanner_token *tokens;
     int32_t token_len;
+    int32_t debug_mode;
 };
 
 /*
