@@ -153,15 +153,19 @@ char* format_token_string(scanner_token token) {
     cursor = &output[len];
 
     if(token.token_type == SCANNER_NUM) {
-        len = sprintf(cursor, "%s ", token_name(token));
+        char *tmp = malloc((token.token_len)* sizeof(char));
+        memcpy(tmp, token.token_ptr, token.token_len);
+        tmp[token.token_len] = '\0';
+        len = sprintf(cursor, "%s\t\"%s\"", token_name(token), tmp);
+        free(tmp);
     } else if(token.token_type == SCANNER_ID) {
         char *tmp = malloc((token.token_len)* sizeof(char));
         memcpy(tmp, token.token_ptr, token.token_len - 1);
         tmp[token.token_len] = '\0';
-        len = sprintf(cursor, "%s \"%s\"", token_name(token), tmp);
+        len = sprintf(cursor, "%s\t\"%s\"", token_name(token), tmp);
         free(tmp);
     } else if(token.token_type == SCANNER_SYMBOL) {
-        len = sprintf(cursor, "%s ", symbol_name(token.symbol));
+        len = sprintf(cursor, "%s", symbol_name(token.symbol));
     } else if(token.token_type == SCANNER_COMMENT) {
         len = sprintf(cursor, "COMMENT");
     } else if(token.token_type == SCANNER_KEYWORD) {

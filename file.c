@@ -65,7 +65,7 @@ int32_t open_file(char* filename, FILE** file_pointer) {
 int32_t write_file(FILE * file_pointer, char* data) {
    int32_t status = -1;
     
-   fwrite(data, sizeof(char), strlen(data) + 1, file_pointer);
+   fwrite(data, sizeof(char), strlen(data), file_pointer);
 
    return status;
 }
