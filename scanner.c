@@ -559,7 +559,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
             status = SYMBOL_EQUAL;
             check_next = 1;
             break;
-        case '!':
+        case '|':
             status = SYMBOL_NOTEQUAL;
             check_next = 1;
             break;
