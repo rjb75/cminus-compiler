@@ -1,0 +1,6 @@
+
+int array ( int b[, int c )
+{
+    c = 2;
+    return c;
+}
