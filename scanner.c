@@ -94,13 +94,13 @@ const char* symbol_name(enum cminus_symbol symbol) {
         case SYMBOL_PLUS:
             return "ADD";
         case SYMBOL_MINUS:
-            return "SUBTRACT";
+            return "SUB";
         case SYMBOL_MULTIPLY:
-            return "MULTIPLY";
+            return "MULT";
         case SYMBOL_DIVIDE:
-            return "DIVIDE";
+            return "DIV";
         case SYMBOL_LESSTHAN:
-            return "LESS_THAN";
+            return "LT";
         case SYMBOL_LESSTHANEQUAL:
             return "LESS_EQUAL";
         case SYMBOL_GREATERTHAN:
@@ -110,7 +110,7 @@ const char* symbol_name(enum cminus_symbol symbol) {
         case SYMBOL_EQUALEQUAL:
             return "EQ";
         case SYMBOL_NOTEQUAL:
-            return "NOT_EQUAL";
+            return "NEQ";
         case SYMBOL_EQUAL:
             return "SET";
         case SYMBOL_SEMICOLON:
@@ -122,9 +122,9 @@ const char* symbol_name(enum cminus_symbol symbol) {
         case SYMBOL_PARENTHESISCLOSE:
             return "C_PAREN";
         case SYMBOL_BRACKETOPEN:
-            return "O_BRACKET";
+            return "O_BRACK";
         case SYMBOL_BRACKETCLOSE:
-            return "C_BRACKET";
+            return "C_BRACK";
         case SYMBOL_BRACESOPEN:
             return "O_BRACE";
         case SYMBOL_BRACESCLOSE:
@@ -192,15 +192,7 @@ int32_t scanner_cleanup(scanner_main* scanner) {
     if(scanner->tokens != NULL) {
         LogDebug(__FUNCTION__, __LINE__, "Freeing token data");
         scanner_token** token_ptr = &scanner->tokens;
-        char *tok_str = NULL;
         while(*token_ptr != NULL) {
-            if((**token_ptr).token_type != SCANNER_COMMENT) {
-                tok_str = format_token_string(**token_ptr);
-                if(scanner->debug_mode > 0) {
-                    printf("%s\n", tok_str);
-                }
-                free(tok_str);
-            }
             scanner_token* temp = (*token_ptr)->next_token;
             free(*token_ptr);
             *token_ptr = temp;
@@ -264,6 +256,13 @@ int32_t add_token(scanner_main* scanner, scanner_token* token) {
     
     scanner_token* to_add = *token_ptr;
     to_add->next_token = token;
+
+    if(token->token_type != SCANNER_COMMENT && scanner->debug_mode > 0) {
+        char *tok_str = NULL;
+        tok_str = format_token_string(**token_ptr);
+        printf("%s\n", tok_str);
+        free(tok_str);
+    }
 
     return 0;
 }
