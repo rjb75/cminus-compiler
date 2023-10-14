@@ -1,3 +1,7 @@
-
+# general extensions
 *.tst.res
 *.log
+
+# scanner specific
+scanner
+scanner.out

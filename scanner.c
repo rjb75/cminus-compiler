@@ -168,8 +168,8 @@ char* format_token_string(scanner_token token) {
         len = sprintf(cursor, "%s\t\"%s\"", token_name(token), tmp);
         free(tmp);
     } else if(token.token_type == SCANNER_ID) {
-        char *tmp = malloc((token.token_len)* sizeof(char));
-        memcpy(tmp, token.token_ptr, token.token_len - 1);
+        char *tmp = malloc((token.token_len + 1)* sizeof(char));
+        memcpy(tmp, token.token_ptr, token.token_len);
         tmp[token.token_len] = '\0';
         len = sprintf(cursor, "%s\t\"%s\"", token_name(token), tmp);
         free(tmp);
@@ -434,7 +434,7 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
 }
 
 int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
-    int32_t start_pos = *position, length = 1, end_pos = *position;
+    int32_t start_pos = *position, length = 0, end_pos = *position;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
 
@@ -454,14 +454,14 @@ int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
                 fprintf(stderr, "error: invalid ID %s may not contain digits at or near line 2\n", idstr);
                 return -1;
             }
-            *position = *position - 1;;
+            *position = *position - 1;
             end_pos = *position;
             break;
         }
-        *position = *position + 1;;
+        *position = *position + 1;
         length++;
     }
-    
+
     scanner_token* token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_ID;
     token->next_token = NULL;
