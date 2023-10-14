@@ -1,0 +1,87 @@
+4: INT
+4: ID	"x"
+4: O_BRACK
+4: NUM	"10"
+4: C_BRACK
+4: SEM_COL
+6: INT
+6: ID	"minloc"
+6: O_PAREN
+6: INT
+6: ID	"a"
+6: O_BRACK
+6: C_BRACK
+6: COMMA
+6: INT
+6: ID	"low"
+6: COMMA
+6: INT
+6: ID	"high"
+6: C_PAREN
+7: O_BRACE
+7: INT
+7: ID	"i"
+7: SEM_COL
+7: INT
+7: ID	"x"
+7: SEM_COL
+7: INT
+7: ID	"k"
+7: SEM_COL
+8: ID	"k"
+8: SET
+8: ID	"low"
+8: SEM_COL
+9: ID	"x"
+9: SET
+9: ID	"a"
+9: O_BRACK
+9: ID	"low"
+9: C_BRACK
+9: SEM_COL
+10: ID	"i"
+10: SET
+10: ID	"low"
+10: ADD
+10: NUM	"1"
+10: SEM_COL
+11: WHILE
+11: O_PAREN
+11: ID	"i"
+11: LT
+11: ID	"high"
+11: C_PAREN
+12: O_BRACE
+12: IF
+12: O_PAREN
+12: ID	"a"
+12: O_BRACK
+12: ID	"i"
+12: C_BRACK
+12: LT
+12: ID	"x"
+12: C_PAREN
+13: O_BRACE
+13: ID	"x"
+13: SET
+13: ID	"a"
+13: O_BRACK
+13: ID	"i"
+13: C_BRACK
+13: SEM_COL
+14: ID	"k"
+14: SET
+14: ID	"i"
+14: SEM_COL
+14: C_BRACE
+15: ID	"i"
+15: SET
+15: ID	"i"
+15: ADD
+15: NUM	"1"
+15: SEM_COL
+16: C_BRACE
+17: RETURN
+17: ID	"k"
+17: SEM_COL
+18: C_BRACE

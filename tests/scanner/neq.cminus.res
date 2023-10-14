@@ -1,0 +1,34 @@
+2: INT
+2: ID	"a"
+2: SET
+2: NUM	"1"
+2: SEM_COL
+3: INT
+3: ID	"b"
+3: SET
+3: NUM	"2"
+3: SEM_COL
+5: IF
+5: O_PAREN
+5: ID	"a"
+5: NEQ
+5: ID	"b"
+5: C_PAREN
+6: O_BRACE
+7: ID	"b"
+7: SET
+7: ID	"a"
+7: SEM_COL
+8: C_BRACE
+10: IF
+10: O_PAREN
+10: ID	"b"
+10: SET
+10: NUM	"1"
+10: C_PAREN
+11: O_BRACE
+12: ID	"b"
+12: SET
+12: NUM	"1"
+12: SEM_COL
+13: C_BRACE

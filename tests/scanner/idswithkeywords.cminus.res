@@ -1,0 +1,103 @@
+5: INT
+5: ID	"hello"
+5: O_PAREN
+5: INT
+5: ID	"a"
+5: COMMA
+5: INT
+5: ID	"b"
+5: C_PAREN
+6: O_BRACE
+7: IF
+7: O_PAREN
+7: ID	"a"
+7: EQ
+7: ID	"b"
+7: C_PAREN
+7: RETURN
+7: ID	"a"
+7: SEM_COL
+8: ELSE
+8: RETURN
+8: ID	"a"
+8: ADD
+8: ID	"b"
+8: SEM_COL
+9: C_BRACE
+11: INT
+11: ID	"world"
+11: O_PAREN
+11: INT
+11: ID	"c"
+11: COMMA
+11: INT
+11: ID	"d"
+11: C_PAREN
+12: O_BRACE
+13: IF
+13: O_PAREN
+13: ID	"c"
+13: GT
+13: ID	"d"
+13: C_PAREN
+13: RETURN
+13: ID	"c"
+13: SEM_COL
+14: ID	"c"
+14: ADD
+14: ID	"d"
+14: SEM_COL
+15: RETURN
+15: ID	"d"
+15: SEM_COL
+16: C_BRACE
+18: VOID
+18: ID	"main"
+18: O_PAREN
+18: VOID
+18: C_PAREN
+19: O_BRACE
+20: INT
+20: ID	"areturn"
+20: SET
+20: NUM	"0"
+20: SEM_COL
+21: INT
+21: ID	"forawhile"
+21: SET
+21: NUM	"2"
+21: SEM_COL
+22: INT
+22: ID	"aboutavoid"
+22: SET
+22: NUM	"0"
+22: SEM_COL
+23: INT
+23: ID	"ifterm"
+23: SET
+23: NUM	"2"
+23: SEM_COL
+25: INT
+25: ID	"forelsea"
+25: SET
+25: ID	"hello"
+25: O_PAREN
+25: ID	"areturn"
+25: COMMA
+25: ID	"aboutavoid"
+25: C_PAREN
+25: SEM_COL
+26: INT
+26: ID	"ifforawhile"
+26: SET
+26: ID	"world"
+26: O_PAREN
+26: ID	"forawhile"
+26: COMMA
+26: ID	"ifterm"
+26: C_PAREN
+26: SEM_COL
+28: RETURN
+28: ID	"forelsea"
+28: SEM_COL
+29: C_BRACE
