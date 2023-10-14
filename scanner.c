@@ -284,7 +284,7 @@ int32_t handle_common(scanner_main* scanner, int32_t* position, int32_t* line) {
 int32_t handle_unknown(scanner_main* scanner, int32_t* position, int32_t* line) {
     char* current_char = &scanner->data[*position];
 
-    printf("warning skipping unknown character \'%c\' at or near line %d\n",
+    fprintf(stderr, "warning skipping unknown character \'%c\' at or near line %d\n",
             *current_char, *line);
 
     return 1;
@@ -325,7 +325,7 @@ scan:
     }
 
     if(*position == scanner->data_len) {
-        printf("unterminated comment at or near line %d\n", *line);
+        fprintf(stderr, "unterminated comment at or near line %d\n", *line);
         return -1;
     }
     
@@ -445,6 +445,15 @@ int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
     while(*position < scanner->data_len) {
         current_char = &scanner->data[*position];
         if(!isalpha(*current_char)) {
+            if(isdigit(*current_char)) {
+                char *idstr = NULL;
+                int32_t id_len = *position - start_pos + 1;
+                idstr = malloc((id_len+ 1) * sizeof(char));
+                memcpy(idstr, &scanner->data[start_pos], id_len);
+                idstr[id_len] = '\0';
+                fprintf(stderr, "error: invalid ID %s may not contain digits at or near line 2\n", idstr);
+                return -1;
+            }
             *position = *position - 1;;
             end_pos = *position;
             break;
@@ -469,7 +478,7 @@ int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
 }
 
 int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
-    int32_t status = -1, start_pos = *position, length = 1, end_pos = *position;
+    int32_t start_pos = *position, length = 1, end_pos = *position;
     char* current_char = &scanner->data[*position];
     start_pos = *position;
     *position = *position + 1;
@@ -497,13 +506,11 @@ int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
     
     add_token(scanner, token);
 
-    status = 1;
-
-    return status;
+    return 1;
 }
 
 int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
-    int32_t status = 0, check_next = 0, length = 0, start_pos = *position;
+    enum cminus_symbol status = 0, check_next = 0, length = 0, start_pos = *position;
     char* current_char = &scanner->data[*position];
     scanner_token* token = NULL;
 
@@ -592,7 +599,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
             return handle_comment(scanner, position, line);
         case '/':
             if(status == SYMBOL_MULTIPLY) {
-                printf("error: end of comment with no matching start "
+                fprintf(stderr, "error: end of comment with no matching start "
                         "at or near line %d\n", *line);
                 return -1;
             }
@@ -635,7 +642,7 @@ end:
     token->line_end= *line;
     add_token(scanner, token);
 
-    return status;
+    return 1;
 }
 
 int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, enum scanner_state* state) {
@@ -647,13 +654,11 @@ int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, en
     }
 
     if(isalpha(*current_char)) {
-        check_id(scanner, position, line);
-        return 1;
+        return check_id(scanner, position, line);
     }
     
     if(isdigit(*current_char)) {
-        check_number(scanner, position, line);
-        return 1;
+        return check_number(scanner, position, line);
     }
 
     status = check_symbol(scanner, position, line);
