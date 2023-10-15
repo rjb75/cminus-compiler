@@ -102,11 +102,11 @@ const char* symbol_name(enum cminus_symbol symbol) {
         case SYMBOL_LESSTHAN:
             return "LT";
         case SYMBOL_LESSTHANEQUAL:
-            return "LESS_EQUAL";
+            return "LEQ";
         case SYMBOL_GREATERTHAN:
             return "GT";
         case SYMBOL_GREATERTHANEQUAL:
-            return "GREATER_EQUAL";
+            return "GEQ";
         case SYMBOL_EQUALEQUAL:
             return "EQ";
         case SYMBOL_NOTEQUAL:
@@ -510,7 +510,8 @@ int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
 }
 
 int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
-    enum cminus_symbol status = 0, check_next = 0, length = 0, start_pos = *position;
+    enum cminus_symbol status = 0;
+    int32_t check_next = 0, length = 0, start_pos = *position;
     char* current_char = &scanner->data[*position];
     scanner_token* token = NULL;
 
@@ -580,10 +581,7 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
     }
 
     if(*position >= scanner->data_len) {
-        if(status == SYMBOL_NOTEQUAL) {
-            status = 0;
-        }
-        goto end;
+        return 0;
     }
 
     current_char = &scanner->data[*position + 1];
@@ -604,6 +602,9 @@ int32_t check_symbol(scanner_main* scanner, int32_t* position, int32_t* line) {
                 return -1;
             }
         default:
+            if(status == SYMBOL_NOTEQUAL) {
+                return 0;
+            }
             goto end;
     }
 
@@ -642,7 +643,7 @@ end:
     token->line_end= *line;
     add_token(scanner, token);
 
-    return 1;
+    return status;
 }
 
 int32_t process_next(scanner_main* scanner, int32_t* position, int32_t* line, enum scanner_state* state) {

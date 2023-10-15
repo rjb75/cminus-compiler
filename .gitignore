@@ -3,5 +3,5 @@
 *.log
 
 # scanner specific
-scanner
+/scanner
 scanner.out
