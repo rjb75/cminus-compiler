@@ -19,24 +19,24 @@ $ make scanner-build
 To run the scanner on a file just give the filename as an argument. By default the output will be stored in `scanner.out`.
 
 ```bash
-$ ./scanner test.cminus
+$ ./scanner test.cm
 ```
 
 To print the output to console, enable debug mode with the `-d` flag
 
 ```bash
-$ ./scanner -d test.cminus
+$ ./scanner -d test.cm
 ```
 
 To print the output to a custom file, specify a file with the `-o` flag
 
 ```bash
-$ ./scanner -o test.out test.cminus
+$ ./scanner -o test.out test.cm
 ```
 
 ### Testing the Scanner
 
-The scanner is currently ran against pre-determined test files and outputs. The test cases are located in `/tests/scanner`. Any `.cminus` file located in this folder will tested against as long as it has a result file following the format of `.cminus.res` with the same name. The output of each test will have the `cminus.tst.res` format.
+The scanner is currently ran against pre-determined test files and outputs. The test cases are located in `/tests/scanner`. Any `.cm` file located in this folder will tested against as long as it has a result file following the format of `.cm.res` with the same name. The output of each test will have the `cm.tst.res` format.
 
 Scanner tests can be ran as follows
 

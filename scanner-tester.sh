@@ -6,7 +6,7 @@ FAILED=0
 
 rm scanner-test-err.log
 
-for f in ./tests/scanner/*.cminus; do
+for f in ./tests/scanner/*.cm; do
     [ -e "$f" ] || continue
     COUNT=$((COUNT + 1))
     name=${f##*/}
@@ -21,7 +21,7 @@ for f in ./tests/scanner/*.cminus; do
     fi
 done
 
-echo "Ran ${COUNT} tests ${FAILED}"
+echo "Ran ${COUNT} tests"
 
 if [ $FAILED -eq 0 ]
 then
