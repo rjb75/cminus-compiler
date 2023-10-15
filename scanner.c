@@ -319,6 +319,13 @@ scan:
     {
         if(*current_char == '\n') {
             *line = *line + 1;
+        } else if(*current_char == '/') {
+            if(*position <= scanner->data_len) {
+                if(scanner->data[*position + 1] == '*') {
+                    fprintf(stderr, "error: comments may not be nested at or near line %d\n", *line);
+                    return -1; 
+                }
+            }
         }
         *position = *position + 1;
         current_char = &scanner->data[*position];
