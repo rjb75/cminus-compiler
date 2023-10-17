@@ -1,0 +1,10 @@
+
+int graduation = 24;
+
+/*
+I'm very excited to graduate
+/* even more excited
+about this nested comment
+*/
+
+int c = 4;

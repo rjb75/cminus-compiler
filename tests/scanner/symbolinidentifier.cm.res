@@ -1,0 +1,7 @@
+2: INT
+2: ID	"ab"
+2: O_PAREN
+2: NUM	"1"
+2: SET
+2: NUM	"2"
+2: SEM_COL

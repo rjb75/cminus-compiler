@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define LOG_LEVEL 3
+#define LOG_LEVEL 0
 
 void LogDebug(const char* function, int line, char* format);
 void LogInfo(const char* function, int line, char* format);

@@ -1,0 +1,30 @@
+
+/* This program contains ids that contain reserved keywords such as
+    else, if, int, return, void, and while */
+
+int hello (int a, int b)
+{   
+    if (a == b) return a;
+    else return a + b;
+}
+
+int world(int c, int d)
+{
+    if(c > d) return c;
+    c + d;
+    return d;
+}
+
+void main(void)
+{
+    int areturn = 0;
+    int forawhile = 2;
+    int aboutavoid = 0;
+    int ifterm = 2;
+
+    int forelsea = hello(areturn, aboutavoid);
+    int ifforawhile = world(forawhile, ifterm);
+
+    return forelsea;
+}
+

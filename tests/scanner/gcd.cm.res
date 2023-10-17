@@ -1,0 +1,70 @@
+5: INT
+5: ID	"gcd"
+5: O_PAREN
+5: INT
+5: ID	"u"
+5: COMMA
+5: ID	"lat"
+5: ID	"v"
+5: C_PAREN
+6: O_BRACE
+6: IF
+6: O_PAREN
+6: ID	"v"
+6: EQ
+6: NUM	"0"
+6: C_PAREN
+6: RETURN
+6: ID	"u"
+6: SEM_COL
+7: ELSE
+7: RETURN
+7: ID	"gcd"
+7: O_PAREN
+7: ID	"v"
+7: COMMA
+7: ID	"u"
+7: SUB
+7: ID	"u"
+7: DIV
+7: ID	"v"
+7: MULT
+7: ID	"v"
+7: C_PAREN
+7: SEM_COL
+9: C_BRACE
+11: VOID
+11: ID	"main"
+11: O_PAREN
+11: VOID
+11: C_PAREN
+12: O_BRACE
+12: INT
+12: ID	"x"
+12: SEM_COL
+12: INT
+12: ID	"y"
+12: SEM_COL
+13: ID	"x"
+13: SET
+13: ID	"input"
+13: O_PAREN
+13: C_PAREN
+13: SEM_COL
+13: ID	"y"
+13: SET
+13: ID	"input"
+13: O_PAREN
+13: C_PAREN
+13: SEM_COL
+14: ID	"output"
+14: O_PAREN
+14: ID	"gcd"
+14: O_PAREN
+14: ID	"x"
+14: COMMA
+14: ID	"y"
+14: C_PAREN
+14: C_PAREN
+14: SEM_COL
+15: C_BRACE
