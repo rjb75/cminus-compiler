@@ -1,0 +1,67 @@
+/*
+This is a file meant to test the majority of cases in c-minus */
+
+int globala;
+int globalb;
+int globalarr[10];
+
+
+/* returns a/b */
+int divide (int a, int b)
+{
+    if(b == 0)
+    {
+        return 0;
+    }
+    return a/b;
+}
+
+/* returns a * b */
+int multiply (int a, int b)
+{
+    return a * b;
+}
+
+/* returns a + b */
+int add (int a, int b)
+{
+    return a * b;
+}
+
+/* returns a - b */
+int subtract (int a, int b)
+{
+    return a - b;
+}
+
+void main (void)
+{
+    int high;
+    int low;
+    int i;
+    int sum;
+
+    high = 25;
+    low = 5;
+
+    globalarr[0] = divide(high, low);
+    globalarr[1] = multiply(low, high);
+    globalarr[2] = add(high, low);
+    globalarr[3] = subtract(high, low);
+
+    i = 4;
+    while (i <= 9)
+    {
+        globalarr[i] = multiply(low, i);
+        i = i + 1;
+    }
+
+    i = 0;
+    sum = 0;
+    while (i < 10)
+    {
+        sum = add(sum, globalarr[i]);
+    }
+
+    return;
+}

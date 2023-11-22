@@ -37,6 +37,7 @@ struct scanner_token_s {
     enum scanner_token_type token_type;
     enum cminus_keyword keyword;
     enum cminus_symbol symbol;
+    int32_t token_id;
     char* token_ptr;
     int32_t token_len;
     int32_t token_start;
@@ -63,6 +64,12 @@ struct scanner_main_s {
  * This type is defined by a struct that holds the scanner instance data
  */
 typedef struct scanner_main_s scanner_main;
+
+int32_t scanner_tokenizer(scanner_main* scanner);
+int cli_parser(scanner_main* scanner, int argc, char *argv[]);
+int32_t scanner_init(scanner_main* scanner);
+int32_t scanner_write_file(scanner_main* scanner);
+int32_t scanner_cleanup(scanner_main* scanner);
 
 #endif
 

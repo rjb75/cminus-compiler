@@ -5,3 +5,11 @@
 # scanner specific
 /scanner
 scanner.out
+
+# parser specific
+/parser
+parser.out
+
+# parser generated bison files
+pr.h
+pr.c

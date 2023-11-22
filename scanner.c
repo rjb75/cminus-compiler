@@ -353,6 +353,7 @@ scan:
     length = end - start;
     token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_COMMENT;
+    token->token_id = TOKEN_COMMENT;
     token->token_start = start;
     token->token_end = end;
     token->token_len = length;
@@ -425,6 +426,7 @@ int32_t check_keyword(scanner_main* scanner, int32_t* position, int32_t* line) {
 
         scanner_token* token = malloc(sizeof(scanner_token));
         token->token_type = SCANNER_KEYWORD;
+        token->token_id = keyword;
         token->keyword = keyword;
         token->next_token = NULL;
         token->token_start = start_pos;
@@ -471,6 +473,7 @@ int32_t check_id(scanner_main* scanner, int32_t* position, int32_t* line) {
 
     scanner_token* token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_ID;
+    token->token_id = TOKEN_ID;
     token->next_token = NULL;
     token->token_start = start_pos;
     token->token_end = end_pos;
@@ -503,6 +506,7 @@ int32_t check_number(scanner_main* scanner, int32_t* position, int32_t* line) {
     
     scanner_token* token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_NUM;
+    token->token_id = TOKEN_NUM;
     token->next_token = NULL;
     token->token_start = start_pos;
     token->token_end = end_pos;
@@ -641,6 +645,7 @@ end:
     token = malloc(sizeof(scanner_token));
     token->token_type = SCANNER_SYMBOL;
     token->symbol = status;
+    token->token_id = status;
     token->next_token = NULL;
     token->token_len = length;
     token->token_start = start_pos;
@@ -694,6 +699,7 @@ int32_t scanner_tokenizer(scanner_main* scanner) {
     return status;
 }
 
+#ifdef MODE_SCANNER
 int main(int argc, char *argv[]) {
     scanner_main scanner;
     scanner_init(&scanner);
@@ -712,3 +718,4 @@ end:
     scanner_cleanup(&scanner);
     return 0;
 }
+#endif
