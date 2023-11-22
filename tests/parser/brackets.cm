@@ -1,0 +1,8 @@
+/* odd brakcets */
+
+void main(void)
+{
+    int a;
+    return;
+}
+}

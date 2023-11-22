@@ -1,0 +1,21 @@
+/* this file tests additive expressions */
+
+
+int main (void)
+{
+    int a;
+    int b;
+    int c;
+    int d;
+    int e;
+    int f;
+
+    a = 1;
+    b = 2;
+    c = 3;
+    d = 4;
+    e = 5;
+
+    f = a + b + (d - c) + e + (a * b);
+    return f;
+}
