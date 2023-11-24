@@ -7,11 +7,13 @@ scanner-build: scanner.c scanner.h common-files
 scanner-test: scanner-build
 	./scanner-tester.sh
 
-parser-build: parser.c parser.h cminus.y common-files
-	bison -do pr.c cminus.y
-	gcc -o parser -Wall -DMODE_PARSER scanner.c logger.c file.c parser.c pr.c ast.c
+parser-files: parser.c parser.h cminus.y bison.c bison.h ast.c ast.h
 
-parser-debug: parser.c parser.h cminus.y common-files
+parser-build: parser-files common-files
+	bison -do pr.c cminus.y
+	gcc -o parser -Wall -DMODE_PARSER scanner.c logger.c file.c parser.c pr.c ast.c bison.c
+
+parser-debug: parser-files common-files
 	bison -dvto pr.c cminus.y
 	gcc -o parser -Wall -DMODE_PARSER scanner.c logger.c file.c parser.c pr.c ast.c
 
