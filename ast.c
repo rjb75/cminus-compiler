@@ -108,7 +108,6 @@ void printDeclaration(declaration_node *declaration, int indent, FILE *out)
     default:
         break;
     }
-    // fprintf(out, "*");
     printDeclaration(declaration->next, indent-1, out);
 }
 

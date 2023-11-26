@@ -19,3 +19,8 @@ parser-debug: parser-files common-files
 
 parser-test: parser-build
 	./parser-tester.sh
+
+analyzer-build: parser-files analyzer.c analyzer.h
+	bison -do pr.c cminus.y
+	gcc -o analyzer -Wall -DMODE_ANALYZER scanner.c logger.c file.c parser.c pr.c ast.c bison.c analyzer.c
+

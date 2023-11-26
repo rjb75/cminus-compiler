@@ -117,8 +117,6 @@ int main(int argc, char *argv[])
         goto end;
     }
 
-    printf("Input File: %s\n", scanner.file_name);
-
     if (!scanner_tokenizer(&scanner))
     {
         LogError(__FUNCTION__, __LINE__, "Error Scanning");

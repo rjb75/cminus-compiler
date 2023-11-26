@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-
-extern int lineno; /* source line number for listing */
+#include <string.h>
+#include "logger.h"
 
 // make int so multiple enums can be used
 typedef int TokenType;

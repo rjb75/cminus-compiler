@@ -13,3 +13,7 @@ parser.out
 # parser generated bison files
 pr.h
 pr.c
+
+# analyzer specific
+/analyzer
+analyzer.out

@@ -24,6 +24,7 @@ typedef enum
 
 typedef enum
 {
+    ERROR_TYPE,
     INT_TYPE,
     VOID_TYPE,
     INT_ARRAY_TYPE,
