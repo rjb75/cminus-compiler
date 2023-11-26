@@ -1,0 +1,7 @@
+/* this file tests re-declaration in the same scope */
+
+void main (void)
+{
+    int x;
+    int x;
+}
