@@ -109,20 +109,24 @@ int check_function_declaration(declaration_node *node, analyzer_scope *scope)
         }
     }
     // add function to symbol table
-    add_to_symbol_table(local_scope, node);
+    if(!add_to_symbol_table(local_scope, node))
+    {
+        return 0;
+    }
     // create function scope
     local_scope = create_scope(local_scope);
+    // printf("created new scope %d\n", local_scope->scope_id);
     declaration_node *current_param = node->params;
     while (current_param != NULL)
     {
-        if (!check_declaration(current_param, scope))
+        if (!check_declaration(current_param, local_scope))
         {
             return 0;
         }
         current_param = current_param->next;
     }
 
-    if (!check_statement(node->child, scope))
+    if (!check_statement(node->child, local_scope))
     {
         return 0;
     }
@@ -146,7 +150,11 @@ int check_declaration(declaration_node *node, analyzer_scope *scope)
     case PARAM_DECL:
     case PARAM_LIST_DECL:
         // add the symbol to current scope symbol table
-        add_to_symbol_table(scope, node);
+        // print_symbol_table(scope);
+        if(!add_to_symbol_table(scope, node))
+        {
+            return 0;
+        }
 
         break;
     case VOID_DECL:
@@ -166,6 +174,7 @@ int check_expression(expression_node *node, analyzer_scope *scope)
         // check if ID is in symbol table
         if (lookup_symbol(node->id, scope, 1) == ERROR_TYPE)
         {
+            // print_symbol_table(scope);
             fprintf(stderr, "Error: unknown name \"%s\" at or near line %d\n", node->id, node->linenumber);
             return 0;
         }
@@ -218,7 +227,7 @@ data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive)
     {
         if (strcmp(id, symbol->id) == 0)
         {
-            type = *symbol->data_type;
+            return symbol->data_type;
         }
         symbol = symbol->next;
     }
@@ -252,11 +261,22 @@ analyzer_symbol_table *create_symbol_table()
     return new_symbol_table;
 }
 
+void print_symbol_table(analyzer_scope *scope)
+{
+    printf("symbol table %d:\n", scope->scope_id);
+    analyzer_symbol *current_symbol = scope->symbol_table->head;
+    while(current_symbol != NULL)
+    {
+        printf("\tsymbol: %s[%d]\n", current_symbol->id, current_symbol->data_type);
+        current_symbol = current_symbol->next;
+    }
+}
+
 int add_to_symbol_table(analyzer_scope *scope, declaration_node *node)
 {
     analyzer_symbol_table *table = scope->symbol_table;
     analyzer_symbol *new_symbol = malloc(sizeof(analyzer_symbol));
-    new_symbol->decl_type = &node->declarationType;
+    new_symbol->decl_type = node->declarationType;
     switch (node->declarationType)
     {
     case VAR_DECL:
@@ -269,12 +289,12 @@ int add_to_symbol_table(analyzer_scope *scope, declaration_node *node)
             free(new_symbol);
             return 0;
         }
-        new_symbol->data_type = &node->type->kind;
+        new_symbol->data_type = node->type->kind;
         new_symbol->id = node->id;
         if (node->declarationType == VAR_ARR_DECL || node->declarationType == PARAM_LIST_DECL)
         {
             // assumption based on language, all arrays are int
-            *new_symbol->data_type = INT_ARRAY_TYPE;
+            new_symbol->data_type = INT_ARRAY_TYPE;
         }
         break;
     case FUNC_DECL:
@@ -284,7 +304,7 @@ int add_to_symbol_table(analyzer_scope *scope, declaration_node *node)
             free(new_symbol);
             return 0;
         }
-        new_symbol->data_type = &node->type->kind;
+        new_symbol->data_type = node->type->kind;
         new_symbol->id = node->id;
         break;
     case VOID_DECL:
@@ -311,7 +331,7 @@ int add_to_symbol_table(analyzer_scope *scope, declaration_node *node)
     table->tail = new_symbol;
     table->length = table->length + 1;
 
-    return 0;
+    return 1;
 }
 
 int analyze_ast(analyzer_main *analyzer)

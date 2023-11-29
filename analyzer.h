@@ -27,8 +27,8 @@ struct analyzer_scope_s {
 struct analyzer_symbol_s {
     char *id;
     analyzer_symbol *next;
-    declaration_type *decl_type;
-    data_type *data_type;
+    declaration_type decl_type;
+    data_type data_type;
 };
 
 struct analyzer_symbol_table_s {
@@ -45,6 +45,7 @@ int check_expression(expression_node *node, analyzer_scope *scope);
 data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive);
 analyzer_scope *create_scope(analyzer_scope *parent);
 analyzer_symbol_table *create_symbol_table();
+void print_symbol_table(analyzer_scope *scope);
 int add_to_symbol_table(analyzer_scope *scope, declaration_node *node);
 int analyze_ast(analyzer_main *analyzer);
 
