@@ -20,6 +20,7 @@ struct analyzer_main_s {
 
 struct analyzer_scope_s {
     int scope_id;
+    char *scope_name;
     analyzer_symbol_table *symbol_table;
     analyzer_scope *parent_scope;
 };
@@ -42,11 +43,12 @@ int check_compound_statement(statement_node *node, analyzer_scope *scope);
 int check_statement(statement_node *node, analyzer_scope *scope);
 int check_declaration(declaration_node *node, analyzer_scope *scope);
 int check_expression(expression_node *node, analyzer_scope *scope);
-data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive);
-analyzer_scope *create_scope(analyzer_scope *parent);
+data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive, char **name);
+analyzer_scope *create_scope(analyzer_scope *parent, char *name);
 analyzer_symbol_table *create_symbol_table();
 void print_symbol_table(analyzer_scope *scope);
 int add_to_symbol_table(analyzer_scope *scope, declaration_node *node);
 int analyze_ast(analyzer_main *analyzer);
+int analyzer_write_file(analyzer_main *analyzer);
 
 #endif

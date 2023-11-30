@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "logger.h"
+#include "file.h"
 
 // make int so multiple enums can be used
 typedef int TokenType;
