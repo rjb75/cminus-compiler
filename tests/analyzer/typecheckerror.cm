@@ -1,0 +1,12 @@
+/* type check error test */
+
+void foo(void)
+{
+    int x;
+    x = 2;
+}
+
+void main (void)
+{
+    foo() + 1;
+}

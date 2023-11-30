@@ -1,0 +1,7 @@
+/* incorrect function syntax */
+
+void main (void)
+{
+    int x;
+    x();
+}

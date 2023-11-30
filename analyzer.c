@@ -164,15 +164,16 @@ int check_declaration(declaration_node *node, analyzer_scope *scope)
     return 1;
 }
 
-int check_function_call(expression_node *node, analyzer_scope *scope)
+data_type check_function_call(expression_node *node, analyzer_scope *scope)
 {
     char *expr_name = NULL;
     // check if ID is in symbol table
-    if (lookup_symbol(node->id, scope, 1, &expr_name) == ERROR_TYPE)
+    data_type fun_type = lookup_symbol(node->id, scope, 1, 1, &expr_name);
+    if (fun_type == ERROR_TYPE)
     {
         // print_symbol_table(scope);
         fprintf(stderr, "Error: unknown name \"%s\" at or near line %d\n", node->id, node->linenumber);
-        return 0;
+        return ERROR_TYPE;
     }
     
     free(node->id);
@@ -184,30 +185,52 @@ int check_function_call(expression_node *node, analyzer_scope *scope)
     {
         if (!check_expression(current_arg, scope))
         {
-            return 0;
+            return ERROR_TYPE;
         }
         current_arg = current_arg->left;
     }
 
-    return 1;
+    return fun_type;
 }
 
-int check_expression(expression_node *node, analyzer_scope *scope)
+data_type type_check_expression(expression_node *left, expression_node *right, analyzer_scope *scope)
+{
+    data_type left_type, right_type;
+    left_type = check_expression(left, scope);
+
+    if(left_type == ERROR_TYPE)
+    {
+        return ERROR_TYPE;
+    }
+
+    right_type = check_expression(right, scope);
+
+    if(left_type == ERROR_TYPE)
+    {
+        return ERROR_TYPE;
+    }
+
+    if(left_type != right_type)
+    {
+        return ERROR_TYPE;
+    }
+
+    return left_type;
+}
+
+data_type check_expression(expression_node *node, analyzer_scope *scope)
 {
     // printf("expr %d\n", node->expressionType);
     char *expr_name = NULL;
+    data_type expr_type = ERROR_TYPE;
     switch (node->expressionType)
     {
     case CALL_EXPR:
-        
-        if (!check_function_call(node, scope))
-        {
-            return 0;
-        }
-
+        return check_function_call(node, scope);
     case ID_EXPR:
         // check if ID is in symbol table
-        if (lookup_symbol(node->id, scope, 1, &expr_name) == ERROR_TYPE)
+        expr_type = lookup_symbol(node->id, scope, 1, 0, &expr_name);
+        if (expr_name == ERROR_TYPE)
         {
             // print_symbol_table(scope);
             fprintf(stderr, "Error: unknown name \"%s\" at or near line %d\n", node->id, node->linenumber);
@@ -217,47 +240,114 @@ int check_expression(expression_node *node, analyzer_scope *scope)
         node->id = expr_name;
         break;
     case IDAT_EXPR:
-        if (lookup_symbol(node->id, scope, 1, &expr_name) == INT_ARRAY_TYPE)
+        if (lookup_symbol(node->id, scope, 1, 0, &expr_name) == INT_ARRAY_TYPE)
         {
             free(node->id);
             node->id = expr_name;
-            return 1;
+            return INT_TYPE;
         }
         fprintf(stderr, "Error: using variable \"%s\" as array at or near line %d\n", node->id, node->linenumber);
-        return 0;
+        return ERROR_TYPE;
     case NUM_EXPR:
         // noop
-        break;
+        return INT_TYPE;
     case ADD_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '+' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case SUB_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '-' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case MUL_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '*' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case DIV_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '/' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case LT_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '<' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case LEQ_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '<=>' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case GT_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '>' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case GEQ_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '>=' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case EQ_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '==' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case NEQ_EXPR:
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
+        {
+            fprintf(stderr, "Error: Operand mismatch for '|=' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
+        }
+        break;
     case SET_EXPR:
-        if (!check_expression(node->left, scope))
+        expr_type = type_check_expression(node->left, node->right, scope);
+        if(expr_type == ERROR_TYPE)
         {
-            return 0;
+            fprintf(stderr, "Error: Operand mismatch for '=' at or near line %d\n", node->linenumber);
+            return ERROR_TYPE;
         }
-        if (!check_expression(node->right, scope))
-        {
-            return 0;
-        }
-        // check left and right expressions
         break;
     default:
         fprintf(stderr, "Error: unknown expression(%d) at or near line %d\n", node->expressionType, node->linenumber);
-        return 0;
+        return ERROR_TYPE;
         break;
     }
-    return 1;
+    return expr_type;
 }
 
-data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive, char** name)
+data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive, int callable, char** name)
 {
     // printf("lookup %s\n", id);
     analyzer_symbol *symbol = scope->symbol_table->head;
@@ -269,13 +359,16 @@ data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive, ch
     {
         if (strcmp(id, symbol->id) == 0)
         {
-            return symbol->data_type;
+            if((callable && symbol->decl_type == FUNC_DECL) || !callable)
+            {
+                return symbol->data_type;
+            }
         }
         symbol = symbol->next;
     }
     if (recursive && scope->parent_scope != NULL)
     {
-        return lookup_symbol(id, scope->parent_scope, 1, name);
+        return lookup_symbol(id, scope->parent_scope, 1, callable, name);
     }
     return type;
 }
@@ -328,7 +421,7 @@ int add_to_symbol_table(analyzer_scope *scope, declaration_node *node)
     case PARAM_DECL:
     case VAR_ARR_DECL:
     case PARAM_LIST_DECL:
-        if (lookup_symbol(node->id, scope, 0, &symbol_name) != ERROR_TYPE)
+        if (lookup_symbol(node->id, scope, 0, 0, &symbol_name) != ERROR_TYPE)
         {
             fprintf(stderr, "Error: \"%s\" redefined at or near line %d\n", node->id, node->linenumber);
             free(new_symbol);
@@ -344,7 +437,7 @@ int add_to_symbol_table(analyzer_scope *scope, declaration_node *node)
         }
         break;
     case FUNC_DECL:
-        if (lookup_symbol(node->id, scope, 1, &symbol_name) != ERROR_TYPE)
+        if (lookup_symbol(node->id, scope, 1, 0, &symbol_name) != ERROR_TYPE)
         {
             fprintf(stderr, "Error: \"%s\" redefined at or near line %d\n", node->id, node->linenumber);
             free(new_symbol);

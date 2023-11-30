@@ -1,0 +1,7 @@
+/* usage of bad array syntax */
+
+void main(void)
+{
+    int x;
+    x[10];
+}
