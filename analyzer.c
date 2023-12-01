@@ -187,7 +187,7 @@ data_type check_function_call(expression_node *node, analyzer_scope *scope)
         {
             return ERROR_TYPE;
         }
-        current_arg = current_arg->left;
+        current_arg = current_arg->next_arg;
     }
 
     return fun_type;
@@ -230,7 +230,7 @@ data_type check_expression(expression_node *node, analyzer_scope *scope)
     case ID_EXPR:
         // check if ID is in symbol table
         expr_type = lookup_symbol(node->id, scope, 1, 0, &expr_name);
-        if (expr_name == ERROR_TYPE)
+        if (expr_type == ERROR_TYPE)
         {
             // print_symbol_table(scope);
             fprintf(stderr, "Error: unknown name \"%s\" at or near line %d\n", node->id, node->linenumber);
