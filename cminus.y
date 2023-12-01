@@ -199,7 +199,7 @@ call: ID O_PAREN args C_PAREN  {
 args: arg_list  {$$ = $1;}
     |   {$$ = NULL;}
 
-arg_list: expression COMMA arg_list {$$ = $1; $1->left=$3;} | expression {$$ = $1;}
+arg_list: expression COMMA arg_list {$$ = $1; $1->next_arg=$3;} | expression {$$ = $1;}
 
     
 %%

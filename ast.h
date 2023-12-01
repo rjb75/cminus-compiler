@@ -88,6 +88,7 @@ typedef struct expression_node_s {
     expression_type expressionType;
     struct expression_node_s *left;
     struct expression_node_s *right;
+    struct expression_node_s *next_arg;
     char* id;
     int value;
     int linenumber;

@@ -200,6 +200,7 @@ void printExpression(expression_node *expression, int indent, FILE *out)
     
     printExpression(expression->left, indent, out);
     printExpression(expression->right, indent, out);
+    printExpression(expression->next_arg, indent, out);
 }
 
 void printStatement(statement_node *statement, int indent, FILE *out)
