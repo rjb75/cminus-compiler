@@ -45,7 +45,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
     {
         return 1;
     }
-    // printf("stmt %d\n", node->statementType);
+    analyzer_scope *local_scope = scope;
     switch (node->statementType)
     {
     case COMPOUND_STMT:
@@ -66,24 +66,27 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         {
             return 0;
         }
-        if (!check_statement(node->child, scope))
+        local_scope = create_scope(local_scope, "while");
+        if (!check_statement(node->child, local_scope))
         {
             return 0;
         }
         if (node->else_child != NULL)
         {
-            if (!check_statement(node->else_child, scope))
+            local_scope = create_scope(local_scope, "while");
+            if (!check_statement(node->else_child, local_scope))
             {
                 return 0;
             }
         }
         break;
     case ITERATION_STMT:
-        if (!check_expression(node->expression, scope))
+        local_scope = create_scope(local_scope, "while");
+        if (!check_expression(node->expression, local_scope))
         {
             return 0;
         }
-        if (!check_statement(node->child, scope))
+        if (!check_statement(node->child, local_scope))
         {
             return 0;
         }

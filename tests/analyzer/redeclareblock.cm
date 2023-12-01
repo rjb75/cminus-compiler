@@ -1,0 +1,31 @@
+/* redeclare a variable in a new block within the same function */
+
+void foo(int a, int b, int c)
+{
+    while(a < b)
+    {
+        int c;
+        c = b / a;
+        a = a + c;
+    }
+    return;
+}
+
+void bar(int a, int b)
+{
+    if(a < b)
+    {
+        int a;
+        a = 3;
+    }
+    else {
+        int b;
+        b = 4;
+    }
+}
+
+void main(void)
+{
+    foo(2, 7, 2);
+    return;
+}
