@@ -114,6 +114,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
     {
         return 1;
     }
+    // printf("stmt %d\n", node->statementType);
     analyzer_scope *local_scope = scope;
     char* scope_string = NULL;
     switch (node->statementType)
@@ -126,7 +127,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         break;
     case EXPRESSION_STMT:
     case RETURN_STMT:
-        if (!check_expression(node->expression, scope))
+        if (node->expression != NULL && !check_expression(node->expression, scope))
         {
             return 0;
         }
