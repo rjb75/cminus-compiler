@@ -38,7 +38,9 @@ struct analyzer_symbol_table_s {
     int length;
 };
 
-int analyzer_init(analyzer_main *analyzer, parser_main *parser);
+int analyzer_init(analyzer_main *analyzer);
+int analyzer_from_parser(analyzer_main *analyzer, parser_main *parser);
+int analyzer_cli_parser(scanner_main* scanner, analyzer_main *analyzer, int argc, char *argv[]);
 int check_compound_statement(statement_node *node, analyzer_scope *scope);
 int check_statement(statement_node *node, analyzer_scope *scope);
 int check_declaration(declaration_node *node, analyzer_scope *scope);

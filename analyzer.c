@@ -1,12 +1,81 @@
 #include "analyzer.h"
 
-int analyzer_init(analyzer_main *analyzer, parser_main *parser)
+int analyzer_init(analyzer_main *analyzer)
+{
+    analyzer->root = NULL;
+    analyzer->debug_mode = 0;
+    strcpy(analyzer->out_file_name, "analyzer.out");
+    analyzer->root_scope = create_scope(NULL, "global");
+    return 1;
+}
+
+int analyzer_from_parser(analyzer_main *analyzer, parser_main *parser)
 {
     analyzer->root = parser->root;
     analyzer->debug_mode = parser->debug_mode;
     strncpy(analyzer->file_name, parser->file_name, 128);
-    strcpy(analyzer->out_file_name, "analyzer.out");
-    analyzer->root_scope = create_scope(NULL, "global");
+    return 1;
+}
+
+int analyzer_cli_parser(scanner_main* scanner, analyzer_main *analyzer, int argc, char *argv[])
+{
+    if(argc < 1) {
+        return -1;
+    } else if(argc == 1) {
+        LogError(__FUNCTION__, __LINE__, "Error parsing arguments");
+        return 1;
+    }
+
+    for (int i = 1; i < argc; i++) {
+        if(strcmp(argv[i], "-o") == 0) {
+            if(i < argc) {
+                char* filename = argv[i+1];
+                if(strlen(filename) > 127) {
+                    LogError(__FUNCTION__, __LINE__, "Output file name too long");
+                    goto end;
+                }
+                strcpy(analyzer->out_file_name, filename);
+                i++;
+            }
+        } else if(strcmp(argv[i], "-d") == 0) {
+            scanner->debug_mode = 1;
+            analyzer->debug_mode = 1;
+        }
+
+        // handle filename
+        if(i == argc - 1) {
+            char* filename = argv[i];
+            if(strlen(filename) > 127) {
+                LogError(__FUNCTION__, __LINE__, "File name too long");
+                goto end;
+            }
+            strcpy(scanner->file_name, filename);
+            strcpy(analyzer->file_name, filename);
+        }
+    }
+    
+    int32_t readbytes = read_file(scanner->file_name, NULL, 0);
+    
+    if(readbytes <1) {
+        LogError(__FUNCTION__, __LINE__, "Error reading file");
+        goto end;
+    }
+    
+    scanner->data = malloc(readbytes * sizeof(char));
+
+    if(scanner->data == NULL) {
+        LogError(__FUNCTION__, __LINE__, "Error allocating data");
+        goto end;
+    }
+    
+    if(read_file(scanner->file_name, scanner->data, readbytes) < 0) {
+        LogError(__FUNCTION__, __LINE__, "Error copying data");
+        goto end;
+    }
+
+    scanner->data_len = readbytes;
+
+end:
     return 1;
 }
 
@@ -46,6 +115,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         return 1;
     }
     analyzer_scope *local_scope = scope;
+    char* scope_string = NULL;
     switch (node->statementType)
     {
     case COMPOUND_STMT:
@@ -66,22 +136,35 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         {
             return 0;
         }
-        local_scope = create_scope(local_scope, "while");
+        scope_string = malloc((strlen(scope->scope_name) + strlen("_if") + 1)*sizeof(char));
+        strcpy(scope_string, scope->scope_name);
+        strcat(scope_string, "_if");
+        local_scope = create_scope(local_scope, scope_string);
         if (!check_statement(node->child, local_scope))
         {
             return 0;
         }
+        free(scope_string);
+        scope_string = NULL;
         if (node->else_child != NULL)
         {
-            local_scope = create_scope(local_scope, "while");
+            scope_string = malloc((strlen(scope->scope_name) + strlen("_else") + 1)*sizeof(char));
+            strcpy(scope_string, scope->scope_name);
+            strcat(scope_string, "_else");
+            local_scope = create_scope(local_scope, scope_string);
             if (!check_statement(node->else_child, local_scope))
             {
                 return 0;
             }
+            free(scope_string);
+        scope_string = NULL;
         }
         break;
     case ITERATION_STMT:
-        local_scope = create_scope(local_scope, "while");
+        scope_string = malloc((strlen(scope->scope_name) + strlen("_while") + 1)*sizeof(char));
+        strcpy(scope_string, scope->scope_name);
+        strcat(scope_string, "_while");
+        local_scope = create_scope(local_scope, scope_string);
         if (!check_expression(node->expression, local_scope))
         {
             return 0;
@@ -516,9 +599,11 @@ int analyzer_write_file(analyzer_main *analyzer)
 
 int main(int argc, char *argv[])
 {
+    analyzer_main analyzer;
     scanner_main scanner;
     scanner_init(&scanner);
-    if (!cli_parser(&scanner, argc, argv))
+    analyzer_init(&analyzer);
+    if (!analyzer_cli_parser(&scanner, &analyzer, argc, argv))
     {
         goto end;
     }
@@ -544,8 +629,7 @@ int main(int argc, char *argv[])
         goto end;
     }
 
-    analyzer_main analyzer;
-    analyzer_init(&analyzer, &parser);
+    analyzer_from_parser(&analyzer, &parser);
 
     if (!analyze_ast(&analyzer))
     {
