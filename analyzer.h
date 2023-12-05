@@ -10,6 +10,14 @@ typedef struct analyzer_scope_s analyzer_scope;
 typedef struct analyzer_symbol_s analyzer_symbol;
 typedef struct analyzer_symbol_table_s analyzer_symbol_table;
 
+typedef enum
+{
+    ERROR_SCOPE,
+    GLOBAL_SCOPE,
+    BLOCK_SCOPE,
+    FUNCTION_SCOPE,
+} scope_type;
+
 struct analyzer_main_s {
     analyzer_scope *root_scope;
     declaration_node *root;
@@ -21,6 +29,8 @@ struct analyzer_main_s {
 struct analyzer_scope_s {
     int scope_id;
     char *scope_name;
+    scope_type type;
+    data_type return_type;
     analyzer_symbol_table *symbol_table;
     analyzer_scope *parent_scope;
 };
@@ -48,7 +58,7 @@ data_type check_function_call(expression_node *node, analyzer_scope *scope);
 data_type check_expression(expression_node *node, analyzer_scope *scope);
 data_type type_check_expression(expression_node *left, expression_node *right, analyzer_scope *scope);
 data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive, int callable, char **name);
-analyzer_scope *create_scope(analyzer_scope *parent, char *name);
+analyzer_scope *create_scope(analyzer_scope *parent, char* name, scope_type scope_type, data_type return_type);
 analyzer_symbol_table *create_symbol_table();
 void print_symbol_table(analyzer_scope *scope);
 int add_to_symbol_table(analyzer_scope *scope, declaration_node *node);

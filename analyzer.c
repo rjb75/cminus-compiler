@@ -5,7 +5,7 @@ int analyzer_init(analyzer_main *analyzer)
     analyzer->root = NULL;
     analyzer->debug_mode = 0;
     strcpy(analyzer->out_file_name, "analyzer.out");
-    analyzer->root_scope = create_scope(NULL, "global");
+    analyzer->root_scope = create_scope(NULL, "global", GLOBAL_SCOPE, VOID_TYPE);
     return 1;
 }
 
@@ -117,6 +117,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
     // printf("stmt %d\n", node->statementType);
     analyzer_scope *local_scope = scope;
     char* scope_string = NULL;
+    data_type return_type = ERROR_TYPE;
     switch (node->statementType)
     {
     case COMPOUND_STMT:
@@ -127,8 +128,23 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         break;
     case EXPRESSION_STMT:
     case RETURN_STMT:
-        if (node->expression != NULL && !check_expression(node->expression, scope))
+        if(node->expression == NULL)
         {
+            if(scope->return_type == VOID_TYPE) {
+                return 1;
+            }
+            fprintf(stderr, "Error: empty return statement at or near line %d\n", node->linenumber);
+            return 0;
+        }
+
+        return_type = check_expression(node->expression, scope);
+        if (return_type == ERROR_TYPE)
+        {
+            return 0;
+        }
+        if(return_type != scope->return_type)
+        {
+            fprintf(stderr, "Error: invalid return statement at or near line %d\n", node->linenumber);
             return 0;
         }
         break;
@@ -140,7 +156,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         scope_string = malloc((strlen(scope->scope_name) + strlen("_if") + 1)*sizeof(char));
         strcpy(scope_string, scope->scope_name);
         strcat(scope_string, "_if");
-        local_scope = create_scope(local_scope, scope_string);
+        local_scope = create_scope(local_scope, scope_string, BLOCK_SCOPE, scope->return_type);
         if (!check_statement(node->child, local_scope))
         {
             return 0;
@@ -152,7 +168,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
             scope_string = malloc((strlen(scope->scope_name) + strlen("_else") + 1)*sizeof(char));
             strcpy(scope_string, scope->scope_name);
             strcat(scope_string, "_else");
-            local_scope = create_scope(local_scope, scope_string);
+            local_scope = create_scope(local_scope, scope_string, BLOCK_SCOPE, scope->return_type);
             if (!check_statement(node->else_child, local_scope))
             {
                 return 0;
@@ -165,7 +181,7 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         scope_string = malloc((strlen(scope->scope_name) + strlen("_while") + 1)*sizeof(char));
         strcpy(scope_string, scope->scope_name);
         strcat(scope_string, "_while");
-        local_scope = create_scope(local_scope, scope_string);
+        local_scope = create_scope(local_scope, scope_string, BLOCK_SCOPE, scope->return_type);
         if (!check_expression(node->expression, local_scope))
         {
             return 0;
@@ -201,7 +217,7 @@ int check_function_declaration(declaration_node *node, analyzer_scope *scope)
         return 0;
     }
     // create function scope
-    local_scope = create_scope(local_scope, node->id);
+    local_scope = create_scope(local_scope, node->id, FUNCTION_SCOPE, node->type->kind);
     // printf("created new scope %d\n", local_scope->scope_id);
     declaration_node *current_param = node->params;
     while (current_param != NULL)
@@ -460,7 +476,7 @@ data_type lookup_symbol(const char *id, analyzer_scope *scope, int recursive, in
     return type;
 }
 
-analyzer_scope *create_scope(analyzer_scope *parent, char* name)
+analyzer_scope *create_scope(analyzer_scope *parent, char* name, scope_type scope_type, data_type return_type)
 {
     analyzer_scope *new_scope = malloc(sizeof(analyzer_scope));
     if (parent == NULL)
@@ -475,6 +491,8 @@ analyzer_scope *create_scope(analyzer_scope *parent, char* name)
     new_scope->scope_name = malloc(strlen(name) + 1);
     strcpy(new_scope->scope_name, name);
     new_scope->symbol_table = create_symbol_table();
+    new_scope->type = scope_type;
+    new_scope->return_type = return_type;
     return new_scope;
 }
 
