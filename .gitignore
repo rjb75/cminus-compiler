@@ -1,5 +1,6 @@
 # general extensions
 *.tst.res
+*.tmp.err
 *.log
 
 # scanner specific

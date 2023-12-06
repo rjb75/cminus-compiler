@@ -1,0 +1,4 @@
+Error: unknown name "x" at or near line 5
+Error: Operand mismatch for '=' at or near line 5
+[0;31mError main:655: Error Analyzing
+[0m
