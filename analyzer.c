@@ -127,6 +127,11 @@ int check_statement(statement_node *node, analyzer_scope *scope)
         }
         break;
     case EXPRESSION_STMT:
+        if(check_expression(node->expression, scope) == ERROR_TYPE)
+        {
+            return 0;
+        }
+        break;
     case RETURN_STMT:
         if(node->expression == NULL)
         {
