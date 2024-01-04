@@ -1,0 +1,10 @@
+/* this file tests vars in the parameter scope */
+
+void foo (int x)
+{
+    x = 1;
+}
+
+void main (void)
+{
+}

@@ -1,0 +1,7 @@
+/* this file tests main declaration order */
+
+void main (void)
+{
+}
+
+int x;

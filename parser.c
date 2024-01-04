@@ -6,11 +6,7 @@
 #include "logger.h"
 #include "pr.h"
 #include "file.h"
-
-extern declaration_node *parse2(void);
-int lineno;
-
-parser_main parser;
+#include "bison.h"
 
 int32_t parser_init(parser_main *parser)
 {
@@ -90,53 +86,6 @@ int getTokenFromScanner(scanner_token *token)
     }
 }
 
-int yylex(YYSTYPE *lvalp)
-{
-    if (parser.current_token == NULL)
-    {
-        return 0;
-    }
-    while (parser.current_token->token_id == TOKEN_COMMENT && parser.current_token != NULL)
-    {
-        parser.current_token = parser.current_token->next_token;
-    }
-    if (parser.current_token == NULL)
-    {
-        return 0;
-    }
-    int token = getTokenFromScanner(parser.current_token);
-    savedLineNo = parser.current_token->line_start;
-    if (parser.current_token->token_id == TOKEN_NUM)
-    {
-        scanner_token *tk = parser.current_token;
-        char *tmp = malloc((tk->token_len) * sizeof(char));
-        memcpy(tmp, tk->token_ptr, tk->token_len);
-        lvalp->num = atoi(tmp);
-        free(tmp);
-    }
-    else if (parser.current_token->token_id == TOKEN_ID)
-    {
-        scanner_token *tk = parser.current_token;
-        char *tmp = malloc((tk->token_len + 1) * sizeof(char));
-        memcpy(tmp, tk->token_ptr, tk->token_len);
-        tmp[tk->token_len] = '\0';
-        lvalp->id = tmp;
-    }
-    parser.current_token = parser.current_token->next_token;
-    return token;
-}
-
-int32_t parse(parser_main *parser)
-{
-    declaration_node *root = parse2();
-    if (root == NULL)
-    {
-        return -1;
-    }
-    parser->root = root;
-    return 1;
-}
-
 int32_t parser_write_file(parser_main *parser)
 {
     FILE *file = NULL;
@@ -168,13 +117,13 @@ int main(int argc, char *argv[])
         goto end;
     }
 
-    printf("Input File: %s\n", scanner.file_name);
-
     if (!scanner_tokenizer(&scanner))
     {
         LogError(__FUNCTION__, __LINE__, "Error Scanning");
         goto end;
     }
+
+    parser_main parser;
 
     parser_init(&parser);
     parser.tokens = scanner.tokens;

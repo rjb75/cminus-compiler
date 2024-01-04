@@ -1,0 +1,17 @@
+/* incorrect return type for function */
+
+int foo(void)
+{
+    return;
+}
+
+void bar(void)
+{
+    return 1;
+}
+
+void main(void)
+{
+    bar();
+    foo();
+}

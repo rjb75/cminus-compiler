@@ -1,5 +1,6 @@
 # general extensions
 *.tst.res
+*.tmp.err
 *.log
 
 # scanner specific
@@ -13,3 +14,7 @@ parser.out
 # parser generated bison files
 pr.h
 pr.c
+
+# analyzer specific
+/analyzer
+analyzer.out

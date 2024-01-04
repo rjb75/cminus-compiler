@@ -1,0 +1,10 @@
+/* this file tests declaration before use */
+
+void foo (void)
+{
+    x = 1;
+}
+int x;
+void main (void) 
+{
+}

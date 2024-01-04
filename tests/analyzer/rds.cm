@@ -1,0 +1,11 @@
+/* this file tests re-declaration in different scopes */
+
+void foo (void)
+{
+}
+
+void main (void)
+{
+    int foo;
+    foo = 0;
+}
